@@ -1,0 +1,17 @@
+# Dependências
+vendor/
+node_modules/
+
+# Uploads (não versionar arquivos enviados)
+uploads/
+
+# Backups: manter apenas dumps SQL
+backups/*.zip
+backups/*.tar
+backups/*.gz
+
+# Temporários
+*.tmp
+*.log
+.DS_Store
+Thumbs.db

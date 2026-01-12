@@ -1,0 +1,21 @@
+CREATE TABLE IF NOT EXISTS Clientes (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    nome VARCHAR(255) NOT NULL,
+    email VARCHAR(255),
+    telefone VARCHAR(20),
+    cpf_cnpj VARCHAR(20) UNIQUE,
+    cep VARCHAR(10),
+    endereco VARCHAR(255),
+    numero VARCHAR(10),
+    complemento VARCHAR(255),
+    bairro VARCHAR(100),
+    cidade VARCHAR(100),
+    estado VARCHAR(2),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    user_id INT,
+    INDEX idx_nome (nome),
+    INDEX idx_email (email),
+    INDEX idx_cpf_cnpj (cpf_cnpj),
+    FOREIGN KEY (user_id) REFERENCES Users(id) ON DELETE SET NULL
+);
