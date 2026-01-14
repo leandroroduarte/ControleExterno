@@ -84,10 +84,67 @@ if (!$produto) { $produto = ['nome'=>$_POST['nome']??'','descricao'=>$_POST['des
 <!doctype html>
 <html lang="pt-br">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Editar Produto</title>
-<style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Segoe UI,Tahoma,Verdana;background:#f5f7fa;color:#333}.navbar{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;padding:15px 30px;display:flex;justify-content:space-between}.container{max-width:800px;margin:30px auto;padding:0 20px}.form-card{background:#fff;padding:30px;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,0.05)}label{display:block;margin-bottom:8px;font-weight:600}input,textarea,select{width:100%;padding:12px;border:1px solid #ddd;border-radius:5px}textarea{resize:vertical;min-height:100px}.form-row{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px}.form-actions{display:flex;gap:10px;margin-top:30px}.btn-submit{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;padding:12px 24px;border-radius:5px;cursor:pointer;border:none;font-weight:600}.btn-submit:hover{opacity:0.9}.error{background:#ffe6e6;padding:12px;border-radius:6px;margin-bottom:20px;color:#c33}.success{background:#e6ffe6;padding:12px;border-radius:6px;margin-bottom:20px;color:#333}.image-preview{margin-top:10px;max-width:300px;border-radius:5px}.file-input-label{display:inline-block;padding:10px 16px;background:#667eea;color:#fff;border-radius:5px;cursor:pointer;margin-top:10px}.file-input-label:hover{background:#5568d3}input[type="file"]{display:none}input[type="number"]{-moz-appearance:textfield}input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}@media(max-width:768px){.form-row{grid-template-columns:1fr}.container{margin:20px auto;padding:0 15px}.form-card{padding:20px}input,textarea,select{font-size:16px}label{font-size:14px}}
+<style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:Segoe UI,Tahoma,Verdana;background:#f5f7fa;color:#333}.navbar{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;padding:15px 30px;display:flex;justify-content:space-between}.container{max-width:800px;margin:30px auto;padding:0 20px}.form-card{background:#fff;padding:30px;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,0.05)}label{display:block;margin-bottom:8px;font-weight:600}input,textarea,select{width:100%;padding:12px;border:1px solid #ddd;border-radius:5px}textarea{resize:vertical;min-height:100px}.form-row{display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px}.form-actions{display:flex;gap:10px;margin-top:30px}.btn-submit{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:#fff;padding:12px 24px;border-radius:5px;cursor:pointer;border:none;font-weight:600}.btn-submit:hover{opacity:0.9}.error{background:#ffe6e6;padding:12px;border-radius:6px;margin-bottom:20px;color:#c33}.success{background:#e6ffe6;padding:12px;border-radius:6px;margin-bottom:20px;color:#333}.image-preview{margin-top:10px;max-width:300px;border-radius:5px}.file-input-label{display:inline-block;padding:10px 16px;background:#667eea;color:#fff;border-radius:5px;cursor:pointer;margin-top:10px}.file-input-label:hover{background:#5568d3}input[type="file"]{display:none}input[type="number"]{-moz-appearance:textfield}input[type="number"]::-webkit-outer-spin-button,input[type="number"]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}.btn-print{background:#28a745;color:#fff;padding:12px 24px;border-radius:5px;cursor:pointer;border:none;font-weight:600;margin-left:10px}.btn-print:hover{background:#218838}.form-actions{display:flex;gap:10px;margin-top:30px}@media print{body{background:#fff;margin:0;padding:0}.navbar,.form-card,label,input,textarea,select,.error,.success,a:not([href*="javascript"]),#print-section{display:block !important}input,textarea,select,.btn-submit,.btn-print,.file-input-label{display:none !important}#print-section{display:block !important;padding:20px;margin:0}.container{display:none}h1,h2{page-break-after:avoid;color:#000}table{width:100%;border-collapse:collapse;margin:20px 0}td{padding:10px;border:1px solid #999}img{max-width:100%;height:auto}}@media(max-width:768px){.form-row{grid-template-columns:1fr}.container{margin:20px auto;padding:0 15px}.form-card{padding:20px}input,textarea,select{font-size:16px}label{font-size:14px}}
 </style></head>
 <body>
   <div class="navbar"><h1>🔐 Controle Externo</h1><div><?php echo htmlspecialchars($user_name); ?> <a href="produtos.php" style="margin-left:10px;color:#fff">Voltar</a></div></div>
+  
+  <!-- SEÇÃO DE IMPRESSÃO -->
+  <div id="print-section" style="display:none;padding:40px;background:#fff;page-break-after:always">
+    <div style="text-align:center;margin-bottom:40px">
+      <h1 style="margin:0;font-size:28px;color:#333">Ficha do Produto</h1>
+      <p style="margin:5px 0;color:#999;font-size:12px">Controle Externo - <?php echo date('d/m/Y H:i'); ?></p>
+    </div>
+    
+    <?php if($produto): ?>
+    <table style="width:100%;border-collapse:collapse;margin-bottom:30px">
+      <tr>
+        <td style="padding:12px;border:1px solid #ddd;font-weight:600;background:#f5f5f5;width:30%">ID do Produto</td>
+        <td style="padding:12px;border:1px solid #ddd"><?php echo htmlspecialchars($produto['id']); ?></td>
+      </tr>
+      <tr>
+        <td style="padding:12px;border:1px solid #ddd;font-weight:600;background:#f5f5f5">Nome</td>
+        <td style="padding:12px;border:1px solid #ddd"><?php echo htmlspecialchars($produto['nome']); ?></td>
+      </tr>
+      <tr>
+        <td style="padding:12px;border:1px solid #ddd;font-weight:600;background:#f5f5f5">Descrição</td>
+        <td style="padding:12px;border:1px solid #ddd"><?php echo htmlspecialchars($produto['descricao'] ?? 'N/A'); ?></td>
+      </tr>
+      <tr>
+        <td style="padding:12px;border:1px solid #ddd;font-weight:600;background:#f5f5f5">Preço</td>
+        <td style="padding:12px;border:1px solid #ddd">R$ <?php echo number_format($produto['preco'] ?? 0, 2, ',', '.'); ?></td>
+      </tr>
+      <tr>
+        <td style="padding:12px;border:1px solid #ddd;font-weight:600;background:#f5f5f5">Quantidade</td>
+        <td style="padding:12px;border:1px solid #ddd"><?php echo htmlspecialchars($produto['quantidade'] ?? '0'); ?> unidades</td>
+      </tr>
+      <tr>
+        <td style="padding:12px;border:1px solid #ddd;font-weight:600;background:#f5f5f5">Fornecedor</td>
+        <td style="padding:12px;border:1px solid #ddd"><?php echo htmlspecialchars($fornecedor_name ?? 'Não especificado'); ?></td>
+      </tr>
+      <tr>
+        <td style="padding:12px;border:1px solid #ddd;font-weight:600;background:#f5f5f5">Data de Criação</td>
+        <td style="padding:12px;border:1px solid #ddd"><?php echo htmlspecialchars($produto['created_at'] ?? 'N/A'); ?></td>
+      </tr>
+      <tr>
+        <td style="padding:12px;border:1px solid #ddd;font-weight:600;background:#f5f5f5">Última Atualização</td>
+        <td style="padding:12px;border:1px solid #ddd"><?php echo htmlspecialchars($produto['updated_at'] ?? 'N/A'); ?></td>
+      </tr>
+    </table>
+    
+    <?php if($produto['imagem'] && file_exists('uploads/'.$produto['imagem'])): ?>
+    <div style="margin-top:30px;text-align:center;page-break-inside:avoid">
+      <h3 style="margin-bottom:15px;color:#333">Imagem do Produto</h3>
+      <img src="uploads/<?php echo htmlspecialchars($produto['imagem']); ?>" alt="<?php echo htmlspecialchars($produto['nome']); ?>" style="max-width:300px;border:1px solid #ddd;padding:10px">
+    </div>
+    <?php endif; ?>
+    
+    <div style="margin-top:40px;padding-top:20px;border-top:2px solid #ddd;text-align:center;color:#999;font-size:12px">
+      <p>Impresso por: <?php echo htmlspecialchars($user_name); ?> | Sistema Controle Externo</p>
+    </div>
+    <?php endif; ?>
+  </div>
+  
   <div class="container"><div class="form-card">
     <h2>✏️ Editar Produto</h2>
     <?php if(!empty($errors)){ echo '<div class="error"><ul>'; foreach($errors as $err) echo '<li>'.htmlspecialchars($err).'</li>'; echo '</ul></div>'; } ?>
@@ -132,6 +189,7 @@ if (!$produto) { $produto = ['nome'=>$_POST['nome']??'','descricao'=>$_POST['des
       
       <div style="margin-top:30px;display:flex;gap:10px">
         <button type="submit" class="btn-submit">✅ Atualizar</button>
+        <button type="button" class="btn-print" onclick="document.getElementById('print-section').style.display='block';document.querySelector('.container').style.display='none';window.print();document.getElementById('print-section').style.display='none';document.querySelector('.container').style.display='block'">🖨️ Imprimir</button>
         <a href="produtos.php" style="padding:12px 24px;border-radius:5px;background:#999;color:#fff;text-decoration:none;font-weight:600;display:inline-block">Cancelar</a>
       </div>
     </form>
