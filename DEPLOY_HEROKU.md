@@ -1,5 +1,25 @@
 # 🚀 Guia de Deploy no Heroku
 
+## ✅ STATUS DO DEPLOY
+
+**Deploy realizado com sucesso!**
+
+- **App Name:** controle-externo-app
+- **URL:** https://controle-externo-app-d0aa24b71f9d.herokuapp.com/
+- **Banco de Dados:** PostgreSQL (heroku-postgresql:essential-0)
+- **Status:** ✅ Online
+- **Data do Deploy:** 16/01/2026
+
+### 🔧 Próximos Passos
+
+1. Acesse https://controle-externo-app-d0aa24b71f9d.herokuapp.com/setup_heroku.php para configurar as tabelas do banco
+2. Após configurar, faça login com as credenciais padrão:
+   - **Email:** admin@controleexterno.com
+   - **Senha:** admin123
+3. Altere a senha do administrador após o primeiro login
+
+---
+
 ## Pré-requisitos
 
 1. ✅ Conta no GitHub (Student Pack ativado)
@@ -266,6 +286,5 @@ heroku config  # Verificar se DATABASE_URL existe
 - [ ] Deploy realizado com sucesso
 - [ ] Aplicação testada e funcionando
 
----
-
 **Boa sorte com seu deploy! 🚀**
+heroku login
