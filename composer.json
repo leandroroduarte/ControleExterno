@@ -6,8 +6,5 @@
         "ext-pdo_pgsql": "*",
         "ext-mbstring": "*",
         "phpmailer/phpmailer": "^7.0"
-    },
-    "require-dev": {
-        "heroku/heroku-buildpack-php": "*"
     }
 }
