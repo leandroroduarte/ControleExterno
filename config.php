@@ -7,15 +7,19 @@ function getDatabaseConfig() {
     
     if ($database_url) {
         // Parse da URL do banco de dados do Heroku
-        // Formato: mysql://username:password@host:port/dbname
+        // Formato: postgres://username:password@host:port/dbname ou mysql://username:password@host:port/dbname
         $url = parse_url($database_url);
+        
+        // Detecta o tipo de banco
+        $is_postgres = ($url['scheme'] ?? '') === 'postgres';
         
         return [
             'host' => $url['host'] ?? '127.0.0.1',
-            'port' => $url['port'] ?? 3306,
+            'port' => $url['port'] ?? ($is_postgres ? 5432 : 3306),
             'database' => ltrim($url['path'] ?? '', '/'),
             'username' => $url['user'] ?? 'root',
-            'password' => $url['pass'] ?? ''
+            'password' => $url['pass'] ?? '',
+            'driver' => $is_postgres ? 'pgsql' : 'mysql'
         ];
     }
     
@@ -25,7 +29,8 @@ function getDatabaseConfig() {
         'port' => 3306,
         'database' => 'ControleExterno',
         'username' => 'root',
-        'password' => ''
+        'password' => '',
+        'driver' => 'mysql'
     ];
 }
 
@@ -33,11 +38,15 @@ function getDbConnection() {
     $config = getDatabaseConfig();
     
     try {
+        $driver = $config['driver'] ?? 'mysql';
+        
         $dsn = sprintf(
-            "mysql:host=%s;port=%d;dbname=%s;charset=utf8mb4",
+            "%s:host=%s;port=%d;dbname=%s%s",
+            $driver,
             $config['host'],
             $config['port'],
-            $config['database']
+            $config['database'],
+            $driver === 'mysql' ? ';charset=utf8mb4' : ''
         );
         
         $pdo = new PDO($dsn, $config['username'], $config['password'], [
