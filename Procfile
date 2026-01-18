@@ -1,0 +1,1 @@
+web: cd $HOME/heroku_output && dotnet ./CadastroUsuarios.dll --server.urls http://+:$PORT

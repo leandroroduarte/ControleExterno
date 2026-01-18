@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Sistema de Cadastro</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container-login {
+            background: white;
+            border-radius: 10px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+            width: 100%;
+            max-width: 400px;
+            padding: 50px 30px;
+            text-align: center;
+        }
+
+        .logo {
+            font-size: 48px;
+            margin-bottom: 20px;
+        }
+
+        h1 {
+            color: #333;
+            font-size: 28px;
+            margin-bottom: 10px;
+        }
+
+        .subtitulo {
+            color: #999;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 500;
+            font-size: 14px;
+        }
+
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            font-family: inherit;
+            transition: border-color 0.3s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 10px;
+        }
+
+        .btn-login:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
+        }
+
+        .btn-login:active {
+            transform: translateY(0);
+        }
+
+        .mensagem {
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            display: none;
+            font-size: 14px;
+        }
+
+        .mensagem.erro {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+
+        .mensagem.sucesso {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .rodape {
+            margin-top: 30px;
+            color: #999;
+            font-size: 13px;
+        }
+
+        .info-demo {
+            background: #f0f4ff;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 30px;
+            border-left: 4px solid #667eea;
+        }
+
+        .info-demo p {
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+
+        .info-demo strong {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-login">
+        <div class="logo">🔐</div>
+        <h1>Sistema de Cadastro</h1>
+        <p class="subtitulo">Faça login para continuar</p>
+
+        <div id="mensagem" class="mensagem"></div>
+
+        <div id="loading" class="loading">
+            <div class="spinner"></div>
+            <p>Autenticando...</p>
+        </div>
+
+        <form id="formLogin" onsubmit="fazerLogin(event)">
+            <div class="form-group">
+                <label for="email">Email:</label>
+                <input 
+                    type="email" 
+                    id="email" 
+                    placeholder="seu@email.com" 
+                    required
+                    autocomplete="email"
+                >
+            </div>
+
+            <div class="form-group">
+                <label for="senha">Senha:</label>
+                <input 
+                    type="password" 
+                    id="senha" 
+                    placeholder="••••••••" 
+                    required
+                    autocomplete="current-password"
+                >
+            </div>
+
+            <button type="submit" class="btn-login">Entrar</button>
+        </form>
+
+        <div class="info-demo">
+            <p><strong>📝 Usuário de Demo (já cadastrado):</strong></p>
+            <p>Email: <strong>demo@email.com</strong></p>
+            <p>Senha: <strong>demo123456</strong></p>
+            <p style="margin-top: 15px; font-size: 12px; color: #999;">
+                ✏️ Após fazer login, você poderá cadastrar novos usuários e todos terão acesso à mesma base de dados.
+            </p>
+        </div>
+
+        <div class="rodape">
+            <p>© 2026 Sistema de Cadastro de Usuários</p>
+        </div>
+    </div>
+
+    <script>
+        // Verificar se já está logado
+        window.addEventListener('load', function() {
+            const usuarioLogado = localStorage.getItem('usuarioLogado');
+            if (usuarioLogado) {
+                window.location.href = 'index.html';
+            }
+        });
+
+        async function fazerLogin(event) {
+            event.preventDefault();
+
+            const email = document.getElementById('email').value;
+            const senha = document.getElementById('senha').value;
+            const loading = document.getElementById('loading');
+            const mensagem = document.getElementById('mensagem');
+            const btn = event.target.querySelector('button');
+
+            // Mostrar loading
+            loading.style.display = 'block';
+            btn.disabled = true;
+            mensagem.className = 'mensagem';
+
+            try {
+                // Buscar usuários da API (com senha)
+                const response = await fetch('http://localhost:5000/api/usuarios/debug/todos');
+                const data = await response.json();
+                const usuarios = data.usuarios;
+
+                // Buscar usuário com email correspondente
+                const usuario = usuarios.find(u => u.email === email);
+
+                if (!usuario) {
+                    throw new Error('Email ou senha incorretos');
+                }
+
+                // Validar senha (comparação simples - em produção usar hash)
+                if (usuario.senha === senha) {
+                    // Login bem-sucedido
+                    localStorage.setItem('usuarioLogado', JSON.stringify({
+                        id: usuario.id,
+                        nome: usuario.nome,
+                        email: usuario.email
+                    }));
+
+                    mensagem.textContent = 'Login bem-sucedido! Redirecionando...';
+                    mensagem.className = 'mensagem sucesso';
+
+                    setTimeout(() => {
+                        window.location.href = 'index.html';
+                    }, 1000);
+                } else {
+                    throw new Error('Email ou senha incorretos');
+                }
+
+            } catch (error) {
+                console.error('Erro:', error);
+                mensagem.textContent = error.message || 'Erro ao fazer login. Tente novamente.';
+                mensagem.className = 'mensagem erro';
+            } finally {
+                loading.style.display = 'none';
+                btn.disabled = false;
+            }
+        }
+
+        // Permitir login com Enter
+        document.getElementById('senha').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                document.getElementById('formLogin').dispatchEvent(new Event('submit'));
+            }
+        });
+    </script>
+</body>
+</html>
