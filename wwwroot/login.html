@@ -247,7 +247,7 @@
 
             try {
                 // Buscar usuários da API (com senha)
-                const response = await fetch('http://localhost:5000/api/usuarios/debug/todos');
+                const response = await fetch('http://localhost:5132/api/usuarios/debug/todos');
                 const data = await response.json();
                 const usuarios = data.usuarios;
 

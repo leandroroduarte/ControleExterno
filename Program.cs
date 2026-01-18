@@ -4,8 +4,12 @@ using CadastroUsuarios.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Adicionar Controllers
-builder.Services.AddControllers();
+// Adicionar Controllers com JSON em camelCase
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
+    });
 
 // Adicionar CORS para aceitar requisições do frontend
 builder.Services.AddCors(options =>
