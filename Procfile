@@ -1,1 +1,1 @@
-web: cd bin/publish && dotnet CadastroUsuarios.dll
+web: cd bin/publish && dotnet CadastroUsuarios.dll --urls http://0.0.0.0:$PORT
