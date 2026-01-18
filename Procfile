@@ -1,1 +1,1 @@
-web: cd $HOME/heroku_output && dotnet ./CadastroUsuarios.dll --server.urls http://+:$PORT
+web: cd $HOME/heroku_output && ASPNETCORE_URLS='http://+:$PORT' dotnet ./CadastroUsuarios.dll
