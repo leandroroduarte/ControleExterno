@@ -1,1 +1,1 @@
-web: dotnet CadastroUsuarios.dll
+web: cd bin/publish && dotnet CadastroUsuarios.dll
