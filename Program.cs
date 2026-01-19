@@ -1,6 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using CadastroUsuarios.Data;
 using CadastroUsuarios.Models;
+using System.IO;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -22,34 +23,12 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Configurar Database Context - Detecta automaticamente o ambiente
-var connectionString = Environment.GetEnvironmentVariable("DATABASE_URL");
-
-if (!string.IsNullOrEmpty(connectionString))
+// Configurar Database Context - Forçar uso de SQLite (ignorar DATABASE_URL)
+builder.Services.AddDbContext<AppDbContext>(options =>
 {
-    // PRODUÇÃO (Heroku) - PostgreSQL
-    // Converter formato Heroku: postgres://user:pass@host:port/db
-    // Para formato .NET: Host=host;Database=db;Username=user;Password=pass
-    var databaseUri = new Uri(connectionString);
-    var userInfo = databaseUri.UserInfo.Split(':');
-    
-    var npgsqlConnection = $"Host={databaseUri.Host};" +
-                          $"Port={databaseUri.Port};" +
-                          $"Database={databaseUri.LocalPath.TrimStart('/')};" +
-                          $"Username={userInfo[0]};" +
-                          $"Password={userInfo[1]};" +
-                          $"SSL Mode=Require;" +
-                          $"Trust Server Certificate=true";
-
-    builder.Services.AddDbContext<AppDbContext>(options =>
-        options.UseNpgsql(npgsqlConnection));
-}
-else
-{
-    // DESENVOLVIMENTO LOCAL - SQLite
-    builder.Services.AddDbContext<AppDbContext>(options =>
-        options.UseSqlite("Data Source=cadastro.db"));
-}
+    var dbPath = Path.Combine(Directory.GetCurrentDirectory(), "cadastro.db");
+    options.UseSqlite($"Data Source={dbPath}");
+});
 
 // Configurar Swagger/OpenAPI
 builder.Services.AddEndpointsApiExplorer();
