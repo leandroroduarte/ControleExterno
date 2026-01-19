@@ -286,6 +286,31 @@
             display: block;
         }
 
+        /* Produtos */
+        .produto-preview {
+            width: 60px;
+            height: 60px;
+            object-fit: cover;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+        }
+
+        .produto-upload {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .produto-upload img {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            display: none;
+        }
+
+
         .vazio {
             text-align: center;
             padding: 40px;
@@ -308,7 +333,6 @@
     <div class="container">
         <div class="header">
             <h1>📋 Sistema de Cadastro de Usuários</h1>
-            <p>Gerencie seus usuários de forma simples e rápida</p>
             <button class="btn-logout" onclick="fazerLogout()">🚪 Sair</button>
         </div>
 
@@ -335,6 +359,39 @@
                     </thead>
                     <tbody id="corpo-tabela">
                     </tbody>
+                </table>
+            </div>
+        </div>
+
+        <hr style="margin: 40px 0; border: none; border-top: 1px solid #eee;">
+
+        <div class="content">
+            <div class="header" style="background: linear-gradient(135deg, #4ac29a 0%, #3ba5b4 100%);">
+                <h1>🛒 Cadastro de Produtos</h1>
+                <button class="btn-logout" onclick="abrirModalProduto()">➕ Novo Produto</button>
+            </div>
+
+            <div id="mensagem-produto" class="mensagem" style="margin-top: 20px;"></div>
+
+            <div class="tabela-container">
+                <div id="carregando-produto" class="loading" style="display: none;">Carregando produtos...</div>
+                <div id="vazio-produto" class="vazio" style="display: none;">
+                    <p>Nenhum produto cadastrado</p>
+                    <small>Clique em "Novo Produto" para adicionar o primeiro</small>
+                </div>
+                <table id="tabela-produto" style="display: none;">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Descrição</th>
+                            <th>Quantidade</th>
+                            <th>Valor</th>
+                            <th>Fornecedor</th>
+                            <th>Imagem</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="corpo-tabela-produto"></tbody>
                 </table>
             </div>
         </div>
@@ -382,8 +439,55 @@
         </div>
     </div>
 
+    <!-- Modal de Novo/Editar Produto -->
+    <div id="modal-produto" class="modal">
+        <div class="modal-conteudo">
+            <div class="modal-header">
+                <h2 id="modal-titulo-produto">Novo Produto</h2>
+                <button class="fechar" onclick="fecharModalProduto()">✕</button>
+            </div>
+
+            <form id="formulario-produto" onsubmit="salvarProduto(event)" onclick="event.stopPropagation()">
+                <input type="hidden" id="produtoId">
+                <div class="form-group">
+                    <label for="produtoDescricao">Descrição:</label>
+                    <input type="text" id="produtoDescricao" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="produtoQuantidade">Quantidade:</label>
+                    <input type="number" id="produtoQuantidade" min="0" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="produtoValor">Valor:</label>
+                    <input type="number" id="produtoValor" min="0" step="0.01" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="produtoFornecedor">Fornecedor:</label>
+                    <input type="text" id="produtoFornecedor" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="produtoImagem">Imagem do Produto:</label>
+                    <div class="produto-upload">
+                        <input type="file" id="produtoImagem" accept="image/*">
+                        <img id="produtoPreview" alt="Pré-visualização" />
+                    </div>
+                </div>
+
+                <div class="modal-acoes">
+                    <button type="button" class="btn-cancelar" onclick="fecharModalProduto()">Cancelar</button>
+                    <button type="submit" class="btn-salvar" id="btnSalvarProduto">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script>
         const API_URL = '/api/usuarios';
+        const PRODUTOS_API_URL = '/api/produtos';
 
         // Verificar login ao carregar
         window.addEventListener('load', function() {
@@ -393,6 +497,11 @@
                 return;
             }
             carregarUsuarios();
+            carregarProdutos();
+            const inputImagem = document.getElementById('produtoImagem');
+            if (inputImagem) {
+                inputImagem.addEventListener('change', handleImagemUpload);
+            }
         });
 
         // Fechar modal ao clicar fora (apenas na área escura)
@@ -633,6 +742,187 @@
             if (confirm('Tem certeza que deseja sair?')) {
                 localStorage.removeItem('usuarioLogado');
                 window.location.href = 'login.html';
+            }
+        }
+
+        // ================== PRODUTOS ==================
+        function mostrarMensagemProduto(texto, tipo) {
+            const div = document.getElementById('mensagem-produto');
+            div.textContent = texto;
+            div.className = `mensagem ${tipo}`;
+            setTimeout(() => {
+                div.className = 'mensagem';
+            }, 3000);
+        }
+
+        async function carregarProdutos() {
+            try {
+                document.getElementById('carregando-produto').style.display = 'block';
+                document.getElementById('tabela-produto').style.display = 'none';
+                document.getElementById('vazio-produto').style.display = 'none';
+
+                const response = await fetch(PRODUTOS_API_URL);
+                if (!response.ok) throw new Error('Erro ao carregar produtos');
+
+                const produtos = await response.json();
+
+                if (!produtos || produtos.length === 0) {
+                    document.getElementById('vazio-produto').style.display = 'block';
+                } else {
+                    preencherTabelaProdutos(produtos);
+                    document.getElementById('tabela-produto').style.display = 'table';
+                }
+
+                document.getElementById('carregando-produto').style.display = 'none';
+            } catch (error) {
+                console.error('Erro:', error);
+                mostrarMensagemProduto('Erro ao carregar produtos', 'erro');
+                document.getElementById('carregando-produto').style.display = 'none';
+            }
+        }
+
+        function preencherTabelaProdutos(produtos) {
+            const tbody = document.getElementById('corpo-tabela-produto');
+            tbody.innerHTML = '';
+
+            produtos.forEach(produto => {
+                const imagem = produto.caminhoImagem
+                    ? `<img class="produto-preview" src="/${produto.caminhoImagem}" alt="${produto.descricao}">`
+                    : '<span style="color:#aaa;">Sem imagem</span>';
+                const linha = `
+                    <tr>
+                        <td>${produto.id}</td>
+                        <td>${produto.descricao}</td>
+                        <td>${produto.quantidade}</td>
+                        <td>R$ ${Number(produto.valor).toFixed(2)}</td>
+                        <td>${produto.fornecedor}</td>
+                        <td>${imagem}</td>
+                        <td>
+                            <div class="acoes">
+                                <button class="btn btn-editar" onclick="abrirModalProduto(${produto.id})">✏️ Editar</button>
+                                <button class="btn btn-deletar" onclick="deletarProduto(${produto.id}, '${produto.descricao}')">🗑️ Deletar</button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                tbody.innerHTML += linha;
+            });
+        }
+
+        function abrirModalProduto(id) {
+            document.getElementById('formulario-produto').reset();
+            document.getElementById('produtoId').value = id || '';
+            const preview = document.getElementById('produtoPreview');
+            preview.style.display = 'none';
+            preview.src = '';
+
+            if (id) {
+                document.getElementById('modal-titulo-produto').textContent = 'Editar Produto';
+                fetch(`${PRODUTOS_API_URL}/${id}`)
+                    .then(r => r.json())
+                    .then(produto => {
+                        document.getElementById('produtoDescricao').value = produto.descricao;
+                        document.getElementById('produtoQuantidade').value = produto.quantidade;
+                        document.getElementById('produtoValor').value = produto.valor;
+                        document.getElementById('produtoFornecedor').value = produto.fornecedor;
+                        if (produto.caminhoImagem) {
+                            preview.src = `/${produto.caminhoImagem}`;
+                            preview.style.display = 'block';
+                        }
+                    })
+                    .catch(err => console.error('Erro ao buscar produto', err));
+            } else {
+                document.getElementById('modal-titulo-produto').textContent = 'Novo Produto';
+            }
+
+            document.getElementById('modal-produto').classList.add('ativo');
+        }
+
+        function fecharModalProduto() {
+            document.getElementById('modal-produto').classList.remove('ativo');
+        }
+
+        function handleImagemUpload(event) {
+            const file = event.target.files[0];
+            const preview = document.getElementById('produtoPreview');
+
+            if (!file) {
+                preview.style.display = 'none';
+                preview.src = '';
+                return;
+            }
+
+            // Criar URL do arquivo local para preview (sem enviar ao servidor)
+            const reader = new FileReader();
+            reader.onload = () => {
+                preview.src = reader.result;
+                preview.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function salvarProduto(event) {
+            event.preventDefault();
+            const id = document.getElementById('produtoId').value;
+            const descricao = document.getElementById('produtoDescricao').value.trim();
+            const quantidade = parseInt(document.getElementById('produtoQuantidade').value || '0');
+            const valor = parseFloat(document.getElementById('produtoValor').value || '0');
+            const fornecedor = document.getElementById('produtoFornecedor').value.trim();
+
+            if (!descricao || !quantidade || !valor || !fornecedor) {
+                mostrarMensagemProduto('Preencha todos os campos obrigatórios', 'erro');
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append('descricao', descricao);
+            formData.append('quantidade', quantidade);
+            formData.append('valor', valor);
+            formData.append('fornecedor', fornecedor);
+
+            const fileInput = document.getElementById('produtoImagem');
+            if (fileInput && fileInput.files.length > 0) {
+                formData.append('imagem', fileInput.files[0]);
+            }
+
+            try {
+                let response;
+                if (id) {
+                    response = await fetch(`${PRODUTOS_API_URL}/${id}`, {
+                        method: 'PUT',
+                        body: formData
+                    });
+                } else {
+                    response = await fetch(PRODUTOS_API_URL, {
+                        method: 'POST',
+                        body: formData
+                    });
+                }
+
+                if (!response.ok) {
+                    const erro = await response.json().catch(() => ({}));
+                    throw new Error(erro.mensagem || 'Erro ao salvar produto');
+                }
+
+                mostrarMensagemProduto(id ? 'Produto atualizado com sucesso!' : 'Produto cadastrado com sucesso!', 'sucesso');
+                fecharModalProduto();
+                carregarProdutos();
+            } catch (error) {
+                console.error(error);
+                mostrarMensagemProduto(error.message || 'Erro ao salvar produto', 'erro');
+            }
+        }
+
+        async function deletarProduto(id, descricao) {
+            if (!confirm(`Deseja realmente deletar o produto "${descricao}"?`)) return;
+            try {
+                const response = await fetch(`${PRODUTOS_API_URL}/${id}`, { method: 'DELETE' });
+                if (!response.ok) throw new Error('Erro ao deletar produto');
+                mostrarMensagemProduto('Produto deletado com sucesso!', 'sucesso');
+                carregarProdutos();
+            } catch (error) {
+                console.error(error);
+                mostrarMensagemProduto('Erro ao deletar produto', 'erro');
             }
         }
     </script>
