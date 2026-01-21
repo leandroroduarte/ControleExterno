@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Collections.Generic;
 
 namespace CadastroUsuarios.Models;
 
@@ -20,4 +21,7 @@ public class Usuario
     public string Senha { get; set; } = string.Empty;
 
     public DateTime DataCadastro { get; set; } = DateTime.UtcNow;
+
+    // Navegação: produtos pertencentes ao usuário
+    public ICollection<Produto> Produtos { get; set; } = new List<Produto>();
 }

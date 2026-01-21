@@ -3,6 +3,8 @@ using Microsoft.EntityFrameworkCore;
 using CadastroUsuarios.Data;
 using CadastroUsuarios.Models;
 using System.IO;
+using System.Security.Claims;
+using Microsoft.AspNetCore.Http;
 
 namespace CadastroUsuarios.Controllers;
 
@@ -25,7 +27,14 @@ public class ProdutosController : ControllerBase
     [HttpGet]
     public async Task<ActionResult<IEnumerable<object>>> GetProdutos()
     {
+        var usuarioId = ObterUsuarioId();
+        if (usuarioId == null)
+        {
+            return Unauthorized(new { mensagem = "Usuário não autenticado" });
+        }
+
         var produtos = await _context.Produtos
+            .Where(p => p.UsuarioId == usuarioId)
             .OrderByDescending(p => p.Id)
             .Select(p => new
             {
@@ -46,8 +55,14 @@ public class ProdutosController : ControllerBase
     [HttpGet("{id}")]
     public async Task<ActionResult<object>> GetProduto(int id)
     {
+        var usuarioId = ObterUsuarioId();
+        if (usuarioId == null)
+        {
+            return Unauthorized(new { mensagem = "Usuário não autenticado" });
+        }
+
         var produto = await _context.Produtos
-            .Where(p => p.Id == id)
+            .Where(p => p.Id == id && p.UsuarioId == usuarioId)
             .Select(p => new
             {
                 p.Id,
@@ -72,13 +87,20 @@ public class ProdutosController : ControllerBase
     [HttpPost]
     public async Task<ActionResult<object>> PostProduto([FromForm] string descricao, [FromForm] int quantidade, [FromForm] decimal valor, [FromForm] string fornecedor, [FromForm] IFormFile? imagem)
     {
+        var usuarioId = ObterUsuarioId();
+        if (usuarioId == null)
+        {
+            return Unauthorized(new { mensagem = "Usuário não autenticado" });
+        }
+
         var produto = new Produto
         {
             Descricao = descricao,
             Quantidade = quantidade,
             Valor = valor,
             Fornecedor = fornecedor,
-            DataCadastro = DateTime.UtcNow
+            DataCadastro = DateTime.UtcNow,
+            UsuarioId = usuarioId.Value
         };
 
         // Processar upload de imagem
@@ -126,7 +148,13 @@ public class ProdutosController : ControllerBase
     [HttpPut("{id}")]
     public async Task<IActionResult> PutProduto(int id, [FromForm] string descricao, [FromForm] int quantidade, [FromForm] decimal valor, [FromForm] string fornecedor, [FromForm] IFormFile? imagem)
     {
-        var existente = await _context.Produtos.FindAsync(id);
+        var usuarioId = ObterUsuarioId();
+        if (usuarioId == null)
+        {
+            return Unauthorized(new { mensagem = "Usuário não autenticado" });
+        }
+
+        var existente = await _context.Produtos.FirstOrDefaultAsync(p => p.Id == id && p.UsuarioId == usuarioId);
         if (existente == null)
         {
             return NotFound(new { mensagem = "Produto não encontrado" });
@@ -185,7 +213,13 @@ public class ProdutosController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> DeleteProduto(int id)
     {
-        var produto = await _context.Produtos.FindAsync(id);
+        var usuarioId = ObterUsuarioId();
+        if (usuarioId == null)
+        {
+            return Unauthorized(new { mensagem = "Usuário não autenticado" });
+        }
+
+        var produto = await _context.Produtos.FirstOrDefaultAsync(p => p.Id == id && p.UsuarioId == usuarioId);
         if (produto == null)
         {
             return NotFound(new { mensagem = "Produto não encontrado" });
@@ -213,5 +247,26 @@ public class ProdutosController : ControllerBase
         await _context.SaveChangesAsync();
 
         return Ok(new { mensagem = "Produto excluído com sucesso!" });
+    }
+
+    // Tenta resolver o ID do usuário a partir da Session ou Claims
+    private int? ObterUsuarioId()
+    {
+        // 1) Session (ex.: HttpContext.Session.SetInt32("UsuarioId", id))
+        var sessionId = HttpContext?.Session?.GetInt32("UsuarioId");
+        if (sessionId.HasValue)
+        {
+            return sessionId.Value;
+        }
+
+        // 2) Claims (ex.: cookie de autenticação com ClaimTypes.NameIdentifier ou "UsuarioId")
+        var claimId = User?.Claims?.FirstOrDefault(c =>
+            c.Type == ClaimTypes.NameIdentifier || c.Type == "UsuarioId");
+        if (claimId != null && int.TryParse(claimId.Value, out var idFromClaim))
+        {
+            return idFromClaim;
+        }
+
+        return null;
     }
 }

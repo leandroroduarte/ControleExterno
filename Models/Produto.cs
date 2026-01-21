@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CadastroUsuarios.Models;
 
@@ -21,6 +22,14 @@ public class Produto
 
     // Caminho relativo para a imagem (ex: uploads/produto_1.jpg)
     public string? CaminhoImagem { get; set; }
+
+    // FK do usuário proprietário do produto
+    [Required]
+    public int UsuarioId { get; set; }
+
+    // Navegação para o usuário
+    [ForeignKey(nameof(UsuarioId))]
+    public Usuario? Usuario { get; set; }
 
     public DateTime DataCadastro { get; set; } = DateTime.UtcNow;
 }

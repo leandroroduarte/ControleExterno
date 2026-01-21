@@ -2,6 +2,7 @@ using Microsoft.EntityFrameworkCore;
 using CadastroUsuarios.Data;
 using CadastroUsuarios.Models;
 using System.IO;
+using Microsoft.AspNetCore.Http;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -12,14 +13,27 @@ builder.Services.AddControllers()
         options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
     });
 
+// Cache e Session para autenticação simples
+builder.Services.AddDistributedMemoryCache();
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromHours(8);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+    options.Cookie.SameSite = SameSiteMode.Lax;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+});
+
 // Adicionar CORS para aceitar requisições do frontend
 builder.Services.AddCors(options =>
 {
     options.AddDefaultPolicy(builder =>
     {
-        builder.AllowAnyOrigin()
-               .AllowAnyMethod()
-               .AllowAnyHeader();
+        builder
+            .WithOrigins("http://localhost:5132")
+            .AllowAnyMethod()
+            .AllowAnyHeader()
+            .AllowCredentials();
     });
 });
 
@@ -71,7 +85,8 @@ app.UseSwaggerUI();
 
 app.UseDefaultFiles(); // Servir index.html como padrão
 app.UseStaticFiles(); // Servir arquivos estáticos (wwwroot)
-app.UseCors(); // Aplicar CORS
+app.UseCors(); // CORS deve vir ANTES de Session
+app.UseSession(); // Habilitar Session antes da autorização
 // app.UseHttpsRedirection(); // Desabilitado para desenvolvimento
 app.UseAuthorization();
 app.MapControllers();

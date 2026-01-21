@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using CadastroUsuarios.Data;
 using CadastroUsuarios.Models;
+using Microsoft.AspNetCore.Http;
 
 namespace CadastroUsuarios.Controllers;
 
@@ -12,10 +13,46 @@ public class UsuariosController : ControllerBase
     private readonly AppDbContext _context;
     private readonly ILogger<UsuariosController> _logger;
 
+    public class LoginRequest
+    {
+        public string Email { get; set; } = string.Empty;
+        public string Senha { get; set; } = string.Empty;
+    }
+
     public UsuariosController(AppDbContext context, ILogger<UsuariosController> logger)
     {
         _context = context;
         _logger = logger;
+    }
+
+    // POST: api/usuarios/login
+    [HttpPost("login")]
+    public async Task<ActionResult<object>> Login([FromBody] LoginRequest request)
+    {
+        if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Senha))
+        {
+            return BadRequest(new { mensagem = "Email e senha são obrigatórios" });
+        }
+
+        var usuario = await _context.Usuarios
+            .FirstOrDefaultAsync(u => u.Email == request.Email);
+
+        if (usuario == null || usuario.Senha != request.Senha)
+        {
+            return Unauthorized(new { mensagem = "Email ou senha incorretos" });
+        }
+
+        // Grava o ID do usuário na sessão para ser usado pelos endpoints protegidos
+        HttpContext.Session.SetInt32("UsuarioId", usuario.Id);
+        _logger.LogInformation($"Sessão criada para usuário ID {usuario.Id}");
+
+        return Ok(new
+        {
+            usuario.Id,
+            usuario.Nome,
+            usuario.Email,
+            mensagem = "Login realizado com sucesso"
+        });
     }
 
     // GET: api/usuarios

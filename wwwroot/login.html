@@ -246,36 +246,33 @@
             mensagem.className = 'mensagem';
 
             try {
-                // Buscar usuários da API (com senha)
-                const response = await fetch('/api/usuarios/debug/todos');
-                const data = await response.json();
-                const usuarios = data.usuarios;
+                const response = await fetch('/api/usuarios/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, senha }),
+                    credentials: 'include'
+                });
 
-                // Buscar usuário com email correspondente
-                const usuario = usuarios.find(u => u.email === email);
-
-                if (!usuario) {
-                    throw new Error('Email ou senha incorretos');
+                if (!response.ok) {
+                    const erro = await response.json().catch(() => ({}));
+                    throw new Error(erro.mensagem || 'Email ou senha incorretos');
                 }
 
-                // Validar senha (comparação simples - em produção usar hash)
-                if (usuario.senha === senha) {
-                    // Login bem-sucedido
-                    localStorage.setItem('usuarioLogado', JSON.stringify({
-                        id: usuario.id,
-                        nome: usuario.nome,
-                        email: usuario.email
-                    }));
+                const usuario = await response.json();
 
-                    mensagem.textContent = 'Login bem-sucedido! Redirecionando...';
-                    mensagem.className = 'mensagem sucesso';
+                // Guarda dados no localStorage (mantém comportamento atual)
+                localStorage.setItem('usuarioLogado', JSON.stringify({
+                    id: usuario.id,
+                    nome: usuario.nome,
+                    email: usuario.email
+                }));
 
-                    setTimeout(() => {
-                        window.location.href = 'index.html';
-                    }, 1000);
-                } else {
-                    throw new Error('Email ou senha incorretos');
-                }
+                mensagem.textContent = 'Login bem-sucedido! Redirecionando...';
+                mensagem.className = 'mensagem sucesso';
+
+                setTimeout(() => {
+                    window.location.href = 'index.html';
+                }, 800);
 
             } catch (error) {
                 console.error('Erro:', error);
