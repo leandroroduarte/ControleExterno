@@ -403,34 +403,50 @@
 
         async function salvarProduto(e) {
             e.preventDefault();
-            const fd = new FormData();
-            fd.append('descricao', document.getElementById('p-desc').value);
-            fd.append('quantidade', document.getElementById('p-qtd').value);
-            fd.append('valor', document.getElementById('p-valor').value);
-            fd.append('fornecedor', document.getElementById('p-forn').value);
+            
+            const btnSubmit = e.target.querySelector('button[type="submit"]');
+            if (btnSubmit.disabled) return; // Evita múltiplos cliques
+            btnSubmit.disabled = true;
+            const textoOriginal = btnSubmit.textContent;
+            btnSubmit.textContent = 'Salvando...';
+            
+            try {
+                const fd = new FormData();
+                fd.append('descricao', document.getElementById('p-desc').value);
+                fd.append('quantidade', document.getElementById('p-qtd').value);
+                fd.append('valor', document.getElementById('p-valor').value);
+                fd.append('fornecedor', document.getElementById('p-forn').value);
 
-            const img = document.getElementById('p-img').files[0];
-            if (img) fd.append('imagem', img);
+                const img = document.getElementById('p-img').files[0];
+                if (img) fd.append('imagem', img);
 
-            const id = document.getElementById('p-id').value;
-            const url = id ? `${API_P}/${id}` : API_P;
-            const method = id ? 'PUT' : 'POST';
+                const id = document.getElementById('p-id').value;
+                const url = id ? `${API_P}/${id}` : API_P;
+                const method = id ? 'PUT' : 'POST';
 
-            const res = await fetch(url, {
-                method,
-                body: fd,
-                credentials: 'include'
-            });
+                const res = await fetch(url, {
+                    method,
+                    body: fd,
+                    credentials: 'include'
+                });
 
-            if (res.ok) {
-                e.target.reset();
-                fecharModais();
-                carregarProdutos();
-                avisar(id ? "Produto atualizado!" : "Produto adicionado!");
-            } else {
-                const txt = await res.text();
+                if (res.ok) {
+                    e.target.reset();
+                    fecharModais();
+                    carregarProdutos();
+                    avisar(id ? "Produto atualizado!" : "Produto adicionado!");
+                } else {
+                    const txt = await res.text();
+                    avisar('Erro ao salvar produto');
+                    console.error('Erro produto:', txt);
+                    btnSubmit.disabled = false;
+                    btnSubmit.textContent = textoOriginal;
+                }
+            } catch (err) {
                 avisar('Erro ao salvar produto');
-                console.error('Erro produto:', txt);
+                console.error('Erro:', err);
+                btnSubmit.disabled = false;
+                btnSubmit.textContent = textoOriginal;
             }
         }
 
