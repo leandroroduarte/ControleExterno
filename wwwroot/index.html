@@ -34,6 +34,21 @@
             margin: 20px 30px 0 30px;
             border-radius: 8px;
         }
+        .header-clientes {
+            background: linear-gradient(135deg, #ff9966 0%, #ff5e62 100%) !important;
+            margin: 20px 30px 0 30px;
+            border-radius: 8px;
+        }
+        .header-usuarios {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+            margin: 20px 30px 0 30px;
+            border-radius: 8px;
+        }
+        .header-fornecedores {
+            background: linear-gradient(135deg, #89f7fe 0%, #66a6ff 100%) !important;
+            margin: 20px 30px 0 30px;
+            border-radius: 8px;
+        }
         .btn-logout {
             background: rgba(255, 255, 255, 0.2);
             color: white;
@@ -80,20 +95,54 @@
 
     <div class="container">
         <div class="header">
-            <h2>👥 Gestão de Usuários</h2>
+            <h2>👥 Gestão de Usuários e Produtos</h2>
             <button class="btn-logout" onclick="fazerLogout()">Sair do Sistema</button>
         </div>
 
         <div id="msg-geral" class="mensagem"></div>
 
+        <div class="header header-usuarios">
+            <h2>👤 Usuários</h2>
+            <button class="btn-logout" onclick="abrirModalUsuario()">+ Novo Usuário</button>
+        </div>
+
         <div class="content">
-            <button class="btn-novo" onclick="abrirModalUsuario()">+ Novo Usuário</button>
             <div id="load-users" class="loading">Carregando usuários...</div>
             <table id="tab-users" style="display:none">
                 <thead>
                     <tr><th>ID</th><th>Nome</th><th>Email</th><th>Ações</th></tr>
                 </thead>
                 <tbody id="corpo-users"></tbody>
+            </table>
+        </div>
+
+        <div class="header header-clientes">
+            <h2>📇 Meus Clientes</h2>
+            <button class="btn-logout" onclick="abrirModalCliente()">+ Adicionar Cliente</button>
+        </div>
+
+        <div class="content">
+            <div id="load-cli" class="loading">Carregando clientes...</div>
+            <table id="tab-cli" style="display:none">
+                <thead>
+                    <tr><th>Nome</th><th>CPF/CNPJ</th><th>Email</th><th>Telefone</th><th>Endereço</th><th>Ações</th></tr>
+                </thead>
+                <tbody id="corpo-cli"></tbody>
+            </table>
+        </div>
+
+        <div class="header header-fornecedores">
+            <h2>🏭 Meus Fornecedores</h2>
+            <button class="btn-logout" onclick="abrirModalFornecedor()">+ Adicionar Fornecedor</button>
+        </div>
+
+        <div class="content">
+            <div id="load-forn" class="loading">Carregando fornecedores...</div>
+            <table id="tab-forn" style="display:none">
+                <thead>
+                    <tr><th>Nome Fantasia</th><th>CNPJ</th><th>Email Vendas</th><th>Telefone</th><th>Categoria</th><th>Ações</th></tr>
+                </thead>
+                <tbody id="corpo-forn"></tbody>
             </table>
         </div>
 
@@ -115,12 +164,45 @@
 
     <div id="modal-user" class="modal">
         <div class="modal-conteudo">
-            <h3>Cadastrar Usuário</h3><br>
+            <h3 id="titulo-user">Cadastrar Usuário</h3><br>
             <form onsubmit="salvarUsuario(event)">
+                <input type="hidden" id="u-id">
                 <div class="form-group"><label>Nome</label><input type="text" id="u-nome" required></div>
                 <div class="form-group"><label>Email</label><input type="email" id="u-email" required></div>
-                <div class="form-group"><label>Senha</label><input type="password" id="u-senha" required></div>
+                <div class="form-group"><label>Senha</label><input type="password" id="u-senha" minlength="6"></div>
                 <button type="submit" class="btn-novo" style="width:100%">Salvar Usuário</button>
+                <button type="button" onclick="fecharModais()" style="width:100%; background:none; border:none; margin-top:10px; cursor:pointer">Cancelar</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-cli" class="modal">
+        <div class="modal-conteudo">
+            <h3 id="titulo-cli">Novo Cliente</h3><br>
+            <form onsubmit="salvarCliente(event)">
+                <input type="hidden" id="c-id">
+                <div class="form-group"><label>Nome</label><input type="text" id="c-nome" required></div>
+                <div class="form-group"><label>CPF/CNPJ</label><input type="text" id="c-doc" required></div>
+                <div class="form-group"><label>Email</label><input type="email" id="c-email" required></div>
+                <div class="form-group"><label>Telefone</label><input type="text" id="c-tel" required></div>
+                <div class="form-group"><label>Endereço</label><input type="text" id="c-ender" required></div>
+                <button type="submit" class="btn-novo" style="width:100%">Salvar Cliente</button>
+                <button type="button" onclick="fecharModais()" style="width:100%; background:none; border:none; margin-top:10px; cursor:pointer">Cancelar</button>
+            </form>
+        </div>
+    </div>
+
+    <div id="modal-forn" class="modal">
+        <div class="modal-conteudo">
+            <h3 id="titulo-forn">Novo Fornecedor</h3><br>
+            <form onsubmit="salvarFornecedor(event)">
+                <input type="hidden" id="f-id">
+                <div class="form-group"><label>Nome Fantasia</label><input type="text" id="f-nome" required></div>
+                <div class="form-group"><label>CNPJ</label><input type="text" id="f-cnpj" required></div>
+                <div class="form-group"><label>Email de Vendas</label><input type="email" id="f-email" required></div>
+                <div class="form-group"><label>Telefone</label><input type="text" id="f-tel" required></div>
+                <div class="form-group"><label>Categoria</label><input type="text" id="f-cat" placeholder="ex: eletrônicos, limpeza" required></div>
+                <button type="submit" class="btn-novo" style="width:100%">Salvar Fornecedor</button>
                 <button type="button" onclick="fecharModais()" style="width:100%; background:none; border:none; margin-top:10px; cursor:pointer">Cancelar</button>
             </form>
         </div>
@@ -128,8 +210,9 @@
 
     <div id="modal-prod" class="modal">
         <div class="modal-conteudo">
-            <h3>Novo Produto</h3><br>
+            <h3 id="titulo-prod">Adicionar Produto</h3><br>
             <form onsubmit="salvarProduto(event)">
+                <input type="hidden" id="p-id">
                 <div class="form-group"><label>Descrição</label><input type="text" id="p-desc" required></div>
                 <div class="form-group"><label>Quantidade</label><input type="number" id="p-qtd" required></div>
                 <div class="form-group"><label>Valor (R$)</label><input type="number" step="0.01" id="p-valor" required></div>
@@ -143,6 +226,8 @@
 
     <script>
         const API_U = '/api/usuarios';
+        const API_C = '/api/clientes';
+        const API_F = '/api/fornecedores';
         const API_P = '/api/produtos';
 
         // Início automático
@@ -152,6 +237,8 @@
                 return;
             }
             carregarUsuarios();
+            carregarClientes();
+            carregarFornecedores();
             carregarProdutos();
         };
 
@@ -159,7 +246,10 @@
         async function carregarUsuarios() {
             try {
                 const res = await fetch(API_U, { credentials: 'include' });
-                if (res.status === 401) { logoutForcado(); return; }
+                if (!res.ok) {
+                    console.error('Erro ao carregar usuários:', res.status);
+                    return;
+                }
                 const dados = await res.json();
                 
                 const html = dados.map(u => `
@@ -167,7 +257,10 @@
                         <td>${u.id}</td>
                         <td>${u.nome}</td>
                         <td>${u.email}</td>
-                        <td><button class="btn btn-deletar" onclick="deletarUsuario(${u.id})">Excluir</button></td>
+                        <td>
+                            <button class="btn" onclick="editarUsuario(${u.id})" style="background:#4CAF50; margin-right:5px">Editar</button>
+                            <button class="btn btn-deletar" onclick="deletarUsuario(${u.id})">Excluir</button>
+                        </td>
                     </tr>
                 `).join('');
                 
@@ -179,23 +272,58 @@
 
         async function salvarUsuario(e) {
             e.preventDefault();
+            const id = document.getElementById('u-id').value;
+            const senha = document.getElementById('u-senha').value.trim();
+            
+            // Validar senha apenas se for novo ou se foi preenchida
+            if (!id && senha.length < 6) {
+                avisar('A senha deve ter no mínimo 6 caracteres');
+                return;
+            }
+            if (id && senha && senha.length < 6) {
+                avisar('A senha deve ter no mínimo 6 caracteres');
+                return;
+            }
+
             const payload = {
-                nome: document.getElementById('u-nome').value,
-                email: document.getElementById('u-email').value,
-                senha: document.getElementById('u-senha').value
+                nome: document.getElementById('u-nome').value.trim(),
+                email: document.getElementById('u-email').value.trim()
             };
+            
+            // Adicionar senha apenas se foi preenchida
+            if (senha) {
+                payload.senha = senha;
+            }
+            
+            // Se tem ID, adiciona no payload para PUT
+            if (id) {
+                payload.id = parseInt(id);
+            }
 
-            const res = await fetch(API_U, {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify(payload),
-                credentials: 'include'
-            });
+            try {
+                const url = id ? `${API_U}/${id}` : API_U;
+                const method = id ? 'PUT' : 'POST';
+                
+                const res = await fetch(url, {
+                    method: method,
+                    headers: {'Content-Type': 'application/json'},
+                    body: JSON.stringify(payload),
+                    credentials: 'include'
+                });
 
-            if(res.ok) { 
-                fecharModais(); 
-                carregarUsuarios(); 
-                avisar("Usuário criado!");
+                if(res.ok) {
+                    e.target.reset();
+                    fecharModais(); 
+                    carregarUsuarios(); 
+                    avisar(id ? "Usuário atualizado!" : "Usuário criado!");
+                } else {
+                    const erro = await res.text();
+                    avisar(`Erro ao salvar: ${erro}`);
+                    console.error('Erro ao salvar usuário:', erro);
+                }
+            } catch (err) {
+                avisar('Erro de conexão ao salvar usuário');
+                console.error('Erro:', err);
             }
         }
 
@@ -219,7 +347,10 @@
                         <td>${p.quantidade}</td>
                         <td>R$ ${parseFloat(p.valor).toFixed(2)}</td>
                         <td>${p.fornecedor}</td>
-                        <td><button class="btn btn-deletar" onclick="deletarProduto(${p.id})">Remover</button></td>
+                        <td>
+                            <button class="btn" onclick="editarProduto(${p.id})" style="background:#4CAF50; margin-right:5px">Editar</button>
+                            <button class="btn btn-deletar" onclick="deletarProduto(${p.id})">Remover</button>
+                        </td>
                     </tr>
                 `).join('');
                 
@@ -247,6 +378,7 @@
             });
 
             if(res.ok) { 
+                e.target.reset();
                 fecharModais(); 
                 carregarProdutos(); 
                 avisar("Produto adicionado!");
@@ -259,12 +391,208 @@
             carregarProdutos();
         }
 
+        // --- FUNÇÕES DE CLIENTES ---
+        async function carregarClientes() {
+            try {
+                const res = await fetch(API_C, { credentials: 'include' });
+                if (res.status === 401) return;
+                const dados = await res.json();
+                const html = dados.map(c => `
+                    <tr>
+                        <td>${c.nome}</td>
+                        <td>${c.cpf_CNPJ ?? ''}</td>
+                        <td>${c.email}</td>
+                        <td>${c.telefone}</td>
+                        <td>${c.endereco}</td>
+                        <td>
+                          <button class="btn" onclick="editarCliente(${c.id})" style="background:#4CAF50; margin-right:5px">Editar</button>
+                          <button class="btn btn-deletar" onclick="deletarCliente(${c.id})">Excluir</button>
+                        </td>
+                    </tr>
+                `).join('');
+                document.getElementById('corpo-cli').innerHTML = html;
+                document.getElementById('load-cli').style.display = 'none';
+                document.getElementById('tab-cli').style.display = 'table';
+            } catch (e) { console.error(e); }
+        }
+
+        function abrirModalCliente() { document.getElementById('modal-cli').classList.add('ativo'); }
+
+        async function salvarCliente(e) {
+            e.preventDefault();
+            const id = document.getElementById('c-id').value;
+            const payload = {
+                nome: document.getElementById('c-nome').value.trim(),
+                cpf_CNPJ: document.getElementById('c-doc').value.trim(),
+                email: document.getElementById('c-email').value.trim(),
+                telefone: document.getElementById('c-tel').value.trim(),
+                endereco: document.getElementById('c-ender').value.trim()
+            };
+            if (id) payload.id = parseInt(id);
+            
+            const url = id ? `${API_C}/${id}` : API_C;
+            const method = id ? 'PUT' : 'POST';
+            
+            const res = await fetch(url, {
+                method: method,
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(payload),
+                credentials: 'include'
+            });
+            if(res.ok) { e.target.reset(); fecharModais(); carregarClientes(); avisar(id ? 'Cliente atualizado!' : 'Cliente criado!'); }
+        }
+
+        async function deletarCliente(id) {
+            if(!confirm('Excluir este cliente?')) return;
+            await fetch(`${API_C}/${id}`, { method: 'DELETE', credentials: 'include' });
+            carregarClientes();
+        }
+
+        // --- FUNÇÕES DE FORNECEDORES ---
+        async function carregarFornecedores() {
+            try {
+                const res = await fetch(API_F, { credentials: 'include' });
+                if (res.status === 401) return;
+                const dados = await res.json();
+                const html = dados.map(f => `
+                    <tr>
+                        <td>${f.nomeFantasia}</td>
+                        <td>${f.cnpj ?? ''}</td>
+                        <td>${f.emailVendas}</td>
+                        <td>${f.telefone}</td>
+                        <td>${f.categoria}</td>
+                        <td>
+                          <button class="btn" onclick="editarFornecedor(${f.id})" style="background:#4CAF50; margin-right:5px">Editar</button>
+                          <button class="btn btn-deletar" onclick="deletarFornecedor(${f.id})">Excluir</button>
+                        </td>
+                    </tr>
+                `).join('');
+                document.getElementById('corpo-forn').innerHTML = html;
+                document.getElementById('load-forn').style.display = 'none';
+                document.getElementById('tab-forn').style.display = 'table';
+            } catch (e) { console.error(e); }
+        }
+
+        function abrirModalFornecedor() { document.getElementById('modal-forn').classList.add('ativo'); }
+
+        async function salvarFornecedor(e) {
+            e.preventDefault();
+            const id = document.getElementById('f-id').value;
+            const payload = {
+                nomeFantasia: document.getElementById('f-nome').value.trim(),
+                cnpj: document.getElementById('f-cnpj').value.trim(),
+                emailVendas: document.getElementById('f-email').value.trim(),
+                telefone: document.getElementById('f-tel').value.trim(),
+                categoria: document.getElementById('f-cat').value.trim()
+            };
+            if (id) payload.id = parseInt(id);
+            
+            const url = id ? `${API_F}/${id}` : API_F;
+            const method = id ? 'PUT' : 'POST';
+            
+            const res = await fetch(url, {
+                method: method,
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(payload),
+                credentials: 'include'
+            });
+            if(res.ok) { e.target.reset(); fecharModais(); carregarFornecedores(); avisar(id ? 'Fornecedor atualizado!' : 'Fornecedor criado!'); }
+        }
+
+        async function deletarFornecedor(id) {
+            if(!confirm('Excluir este fornecedor?')) return;
+            await fetch(`${API_F}/${id}`, { method: 'DELETE', credentials: 'include' });
+            carregarFornecedores();
+        }
+
         // --- AUXILIARES ---
-        function abrirModalUsuario() { document.getElementById('modal-user').classList.add('ativo'); }
-        function abrirModalProduto() { document.getElementById('modal-prod').classList.add('ativo'); }
+        function abrirModalUsuario() { 
+            document.getElementById('titulo-user').textContent = 'Cadastrar Usuário';
+            document.getElementById('u-id').value = '';
+            document.getElementById('u-senha').setAttribute('required', 'required');
+            document.getElementById('modal-user').classList.add('ativo'); 
+        }
+        function abrirModalProduto() { 
+            document.getElementById('titulo-prod').textContent = 'Adicionar Produto';
+            document.getElementById('p-id').value = '';
+            document.getElementById('modal-prod').classList.add('ativo'); 
+        }
+        
+        // Funções de edição
+        async function editarUsuario(id) {
+            try {
+                const res = await fetch(`${API_U}/${id}`, { credentials: 'include' });
+                if (!res.ok) { avisar('Erro ao carregar usuário'); return; }
+                const user = await res.json();
+                
+                document.getElementById('titulo-user').textContent = 'Editar Usuário';
+                document.getElementById('u-id').value = user.id;
+                document.getElementById('u-nome').value = user.nome;
+                document.getElementById('u-email').value = user.email;
+                document.getElementById('u-senha').value = '';
+                document.getElementById('u-senha').removeAttribute('required');
+                document.getElementById('modal-user').classList.add('ativo');
+            } catch (err) {
+                avisar('Erro ao carregar usuário');
+                console.error(err);
+            }
+        }
+        
+        async function editarCliente(id) {
+            try {
+                const res = await fetch(`${API_C}/${id}`, { credentials: 'include' });
+                if (!res.ok) { avisar('Erro ao carregar cliente'); return; }
+                const cliente = await res.json();
+                
+                document.getElementById('titulo-cli').textContent = 'Editar Cliente';
+                document.getElementById('c-id').value = cliente.id;
+                document.getElementById('c-nome').value = cliente.nome;
+                document.getElementById('c-doc').value = cliente.cpf_CNPJ || '';
+                document.getElementById('c-email').value = cliente.email;
+                document.getElementById('c-tel').value = cliente.telefone;
+                document.getElementById('c-ender').value = cliente.endereco;
+                document.getElementById('modal-cli').classList.add('ativo');
+            } catch (err) {
+                avisar('Erro ao carregar cliente');
+                console.error(err);
+            }
+        }
+        
+        async function editarFornecedor(id) {
+            try {
+                const res = await fetch(`${API_F}/${id}`, { credentials: 'include' });
+                if (!res.ok) { avisar('Erro ao carregar fornecedor'); return; }
+                const fornecedor = await res.json();
+                
+                document.getElementById('titulo-forn').textContent = 'Editar Fornecedor';
+                document.getElementById('f-id').value = fornecedor.id;
+                document.getElementById('f-nome').value = fornecedor.nomeFantasia;
+                document.getElementById('f-cnpj').value = fornecedor.cnpj || '';
+                document.getElementById('f-email').value = fornecedor.emailVendas;
+                document.getElementById('f-tel').value = fornecedor.telefone;
+                document.getElementById('f-cat').value = fornecedor.categoria;
+                document.getElementById('modal-forn').classList.add('ativo');
+            } catch (err) {
+                avisar('Erro ao carregar fornecedor');
+                console.error(err);
+            }
+        }
+        
+        async function editarProduto(id) {
+            avisar('Edição de produtos em desenvolvimento');
+            // TODO: Implementar edição de produtos (mais complexo devido ao upload de imagem)
+        }
+        
         function fecharModais() { 
             document.querySelectorAll('.modal').forEach(m => m.classList.remove('ativo'));
             document.querySelectorAll('form').forEach(f => f.reset());
+            // Restaurar títulos originais
+            document.getElementById('titulo-user').textContent = 'Cadastrar Usuário';
+            document.getElementById('titulo-cli').textContent = 'Novo Cliente';
+            document.getElementById('titulo-forn').textContent = 'Novo Fornecedor';
+            document.getElementById('titulo-prod').textContent = 'Adicionar Produto';
+            // Restaurar required na senha
+            document.getElementById('u-senha').setAttribute('required', 'required');
         }
         function avisar(txt) {
             const m = document.getElementById('msg-geral');

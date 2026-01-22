@@ -106,6 +106,12 @@ public class UsuariosController : ControllerBase
             return BadRequest(ModelState);
         }
 
+        // Validar senha mínima
+        if (string.IsNullOrWhiteSpace(usuario.Senha) || usuario.Senha.Length < 6)
+        {
+            return BadRequest(new { mensagem = "A senha deve ter no mínimo 6 caracteres" });
+        }
+
         // Verificar se email já existe
         var emailExiste = await _context.Usuarios
             .AnyAsync(u => u.Email == usuario.Email);

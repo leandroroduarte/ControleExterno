@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Clientes</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+  <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="index.html">Cadastro</a>
+      <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="navbarNav">
+        <ul class="navbar-nav ms-auto">
+          <li class="nav-item"><a class="nav-link" href="clientes.html">Clientes</a></li>
+          <li class="nav-item"><a class="nav-link" href="fornecedores.html">Fornecedores</a></li>
+        </ul>
+      </div>
+    </div>
+  </nav>
+
+  <main class="container py-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <h1 class="h4">Clientes</h1>
+      <button class="btn btn-success" id="btnNovoCliente">+ Novo Cliente</button>
+    </div>
+
+    <div id="mensagem" class="alert d-none" role="alert"></div>
+    <div id="carregando" class="text-center text-secondary my-3 d-none">Carregando...</div>
+
+    <div class="table-responsive">
+      <table class="table table-striped" id="tabelaClientes">
+        <thead>
+          <tr>
+            <th>Id</th>
+            <th>Nome</th>
+            <th>CPF/CNPJ</th>
+            <th>Email</th>
+            <th>Telefone</th>
+            <th>Endereço</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody id="tbodyClientes"></tbody>
+      </table>
+    </div>
+  </main>
+
+  <!-- Modal Cliente -->
+  <div class="modal fade" id="clienteModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="clienteModalLabel">Novo Cliente</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <form id="formCliente">
+          <div class="modal-body">
+            <input type="hidden" id="clienteId">
+            <div class="mb-3">
+              <label class="form-label" for="clienteNome">Nome</label>
+              <input class="form-control" id="clienteNome" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label" for="clienteCpfCnpj">CPF/CNPJ</label>
+              <input class="form-control" id="clienteCpfCnpj" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label" for="clienteEmail">Email</label>
+              <input type="email" class="form-control" id="clienteEmail" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label" for="clienteTelefone">Telefone</label>
+              <input class="form-control" id="clienteTelefone" required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label" for="clienteEndereco">Endereço</label>
+              <input class="form-control" id="clienteEndereco" required>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+            <button type="submit" class="btn btn-primary">Salvar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <script>
+    const CLIENTES_API = '/api/clientes';
+
+    function checkLogin() {
+      const usuario = localStorage.getItem('usuarioLogado');
+      if (!usuario) { window.location.href = 'login.html'; }
+    }
+
+    function showMessage(texto, tipo) {
+      const el = document.getElementById('mensagem');
+      el.className = `alert alert-${tipo}`;
+      el.textContent = texto;
+      el.classList.remove('d-none');
+      setTimeout(() => el.classList.add('d-none'), 3000);
+    }
+
+    async function carregarClientes() {
+      document.getElementById('carregando').classList.remove('d-none');
+      try {
+        const resp = await fetch(CLIENTES_API, { credentials: 'include' });
+        if (!resp.ok) throw new Error('Erro ao carregar clientes');
+        const dados = await resp.json();
+        preencherTabela(dados);
+      } catch (e) {
+        console.error(e);
+        showMessage('Erro ao carregar clientes', 'danger');
+      } finally {
+        document.getElementById('carregando').classList.add('d-none');
+      }
+    }
+
+    function preencherTabela(clientes) {
+      const tbody = document.getElementById('tbodyClientes');
+      tbody.innerHTML = '';
+      clientes.forEach(c => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td>${c.id}</td>
+          <td>${c.nome}</td>
+          <td>${c.cpf_CNPJ || c.cpf_CNPJ}</td>
+          <td>${c.email}</td>
+          <td>${c.telefone}</td>
+          <td>${c.endereco}</td>
+          <td>
+            <button class="btn btn-sm btn-outline-primary me-2" onclick="abrirModal(${c.id})">Editar</button>
+            <button class="btn btn-sm btn-outline-danger" onclick="deletarCliente(${c.id}, '${c.nome}')">Excluir</button>
+          </td>`;
+        tbody.appendChild(tr);
+      });
+    }
+
+    async function abrirModal(id) {
+      document.getElementById('formCliente').reset();
+      document.getElementById('clienteId').value = id || '';
+      document.getElementById('clienteModalLabel').textContent = id ? 'Editar Cliente' : 'Novo Cliente';
+      const modal = new bootstrap.Modal(document.getElementById('clienteModal'));
+
+      if (id) {
+        try {
+          const resp = await fetch(`${CLIENTES_API}/${id}`, { credentials: 'include' });
+          const c = await resp.json();
+          document.getElementById('clienteNome').value = c.nome;
+          document.getElementById('clienteCpfCnpj').value = c.cpf_CNPJ || c.cpf_CNPJ;
+          document.getElementById('clienteEmail').value = c.email;
+          document.getElementById('clienteTelefone').value = c.telefone;
+          document.getElementById('clienteEndereco').value = c.endereco;
+        } catch (e) { console.error(e); }
+      }
+      modal.show();
+    }
+
+    async function salvarCliente(e) {
+      e.preventDefault();
+      const id = document.getElementById('clienteId').value;
+      const payload = {
+        id: id ? parseInt(id) : 0,
+        Nome: document.getElementById('clienteNome').value.trim(),
+        CPF_CNPJ: document.getElementById('clienteCpfCnpj').value.trim(),
+        Email: document.getElementById('clienteEmail').value.trim(),
+        Telefone: document.getElementById('clienteTelefone').value.trim(),
+        Endereco: document.getElementById('clienteEndereco').value.trim()
+      };
+
+      try {
+        const resp = await fetch(id ? `${CLIENTES_API}/${id}` : CLIENTES_API, {
+          method: id ? 'PUT' : 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+          credentials: 'include'
+        });
+        if (!resp.ok) throw new Error('Erro ao salvar');
+        showMessage(id ? 'Cliente atualizado!' : 'Cliente criado!', 'success');
+        bootstrap.Modal.getInstance(document.getElementById('clienteModal')).hide();
+        carregarClientes();
+      } catch (e) {
+        console.error(e);
+        showMessage('Erro ao salvar cliente', 'danger');
+      }
+    }
+
+    async function deletarCliente(id, nome) {
+      if (!confirm(`Deseja excluir o cliente "${nome}"?`)) return;
+      try {
+        const resp = await fetch(`${CLIENTES_API}/${id}`, { method: 'DELETE', credentials: 'include' });
+        if (!resp.ok) throw new Error('Erro ao excluir');
+        showMessage('Cliente excluído!', 'success');
+        carregarClientes();
+      } catch (e) {
+        console.error(e);
+        showMessage('Erro ao excluir cliente', 'danger');
+      }
+    }
+
+    document.getElementById('btnNovoCliente').addEventListener('click', () => abrirModal());
+    document.getElementById('formCliente').addEventListener('submit', salvarCliente);
+
+    checkLogin();
+    carregarClientes();
+  </script>
+</body>
+</html>
