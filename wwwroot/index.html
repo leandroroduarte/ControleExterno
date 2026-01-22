@@ -692,6 +692,22 @@
             // Limpar preview de produto
             const prev = document.getElementById('p-preview');
             if (prev) { prev.src = ''; prev.style.display = 'none'; }
+            // Reabilitar todos os botões de submit
+            document.querySelectorAll('form button[type="submit"]').forEach(btn => {
+                btn.disabled = false;
+                if (btn.classList.contains('btn-novo-prod')) {
+                    btn.textContent = 'Salvar no Estoque';
+                } else if (btn.classList.contains('btn-novo')) {
+                    const form = btn.closest('form');
+                    if (form.id === 'formUsuario' || form.querySelector('#u-id')) {
+                        btn.textContent = 'Salvar Usuário';
+                    } else if (form.querySelector('#c-id')) {
+                        btn.textContent = 'Salvar Cliente';
+                    } else if (form.querySelector('#f-id')) {
+                        btn.textContent = 'Salvar Fornecedor';
+                    }
+                }
+            });
         }
         function avisar(txt) {
             const m = document.getElementById('msg-geral');
