@@ -89,6 +89,22 @@
         .sucesso { background: #d4edda; color: #155724; display: block; }
         .erro { background: #f8d7da; color: #721c24; display: block; }
         .loading { text-align: center; padding: 20px; color: #666; font-style: italic; }
+        .table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; margin-top: 20px; }
+        @media (max-width: 768px) {
+            body { padding: 10px; }
+            .container { border-radius: 6px; }
+            .header { padding: 20px 15px; flex-direction: column; gap: 15px; align-items: flex-start; }
+            .header-produtos, .header-clientes, .header-usuarios, .header-fornecedores {
+                margin: 15px 15px 0 15px; padding: 15px;
+            }
+            .content { padding: 15px; }
+            table { font-size: 13px; min-width: 600px; }
+            th, td { padding: 10px 8px; white-space: nowrap; }
+            .btn { padding: 5px 10px; font-size: 12px; }
+            .btn-logout { padding: 8px 15px; font-size: 14px; }
+            .modal-conteudo { width: 90%; max-width: 400px; padding: 20px; }
+            .produto-preview { width: 40px; height: 40px; }
+        }
     </style>
 </head>
 <body>
@@ -96,7 +112,10 @@
     <div class="container">
         <div class="header">
             <h2>👥 Gestão de Usuários e Produtos</h2>
-            <button class="btn-logout" onclick="fazerLogout()">Sair do Sistema</button>
+            <div style="display:flex; align-items:center; gap:12px">
+                <span id="usuario-nome" style="font-weight:600"></span>
+                <button class="btn-logout" onclick="fazerLogout()">Sair do Sistema</button>
+            </div>
         </div>
 
         <div id="msg-geral" class="mensagem"></div>
@@ -108,12 +127,14 @@
 
         <div class="content">
             <div id="load-users" class="loading">Carregando usuários...</div>
-            <table id="tab-users" style="display:none">
-                <thead>
-                    <tr><th>ID</th><th>Nome</th><th>Email</th><th>Ações</th></tr>
-                </thead>
-                <tbody id="corpo-users"></tbody>
-            </table>
+            <div class="table-wrapper">
+                <table id="tab-users" style="display:none">
+                    <thead>
+                        <tr><th>ID</th><th>Nome</th><th>Email</th><th>Ações</th></tr>
+                    </thead>
+                    <tbody id="corpo-users"></tbody>
+                </table>
+            </div>
         </div>
 
         <div class="header header-clientes">
@@ -123,12 +144,14 @@
 
         <div class="content">
             <div id="load-cli" class="loading">Carregando clientes...</div>
-            <table id="tab-cli" style="display:none">
-                <thead>
-                    <tr><th>Nome</th><th>CPF/CNPJ</th><th>Email</th><th>Telefone</th><th>Endereço</th><th>Ações</th></tr>
-                </thead>
-                <tbody id="corpo-cli"></tbody>
-            </table>
+            <div class="table-wrapper">
+                <table id="tab-cli" style="display:none">
+                    <thead>
+                        <tr><th>Nome</th><th>CPF/CNPJ</th><th>Email</th><th>Telefone</th><th>Endereço</th><th>Ações</th></tr>
+                    </thead>
+                    <tbody id="corpo-cli"></tbody>
+                </table>
+            </div>
         </div>
 
         <div class="header header-fornecedores">
@@ -138,12 +161,14 @@
 
         <div class="content">
             <div id="load-forn" class="loading">Carregando fornecedores...</div>
-            <table id="tab-forn" style="display:none">
-                <thead>
-                    <tr><th>Nome Fantasia</th><th>CNPJ</th><th>Email Vendas</th><th>Telefone</th><th>Categoria</th><th>Ações</th></tr>
-                </thead>
-                <tbody id="corpo-forn"></tbody>
-            </table>
+            <div class="table-wrapper">
+                <table id="tab-forn" style="display:none">
+                    <thead>
+                        <tr><th>Nome Fantasia</th><th>CNPJ</th><th>Email Vendas</th><th>Telefone</th><th>Categoria</th><th>Ações</th></tr>
+                    </thead>
+                    <tbody id="corpo-forn"></tbody>
+                </table>
+            </div>
         </div>
 
         <div class="header header-produtos">
@@ -153,12 +178,14 @@
 
         <div class="content">
             <div id="load-prod" class="loading">Carregando estoque...</div>
-            <table id="tab-prod" style="display:none">
-                <thead>
-                    <tr><th>Foto</th><th>Descrição</th><th>Qtd</th><th>Preço</th><th>Fornecedor</th><th>Ações</th></tr>
-                </thead>
-                <tbody id="corpo-prod"></tbody>
-            </table>
+            <div class="table-wrapper">
+                <table id="tab-prod" style="display:none">
+                    <thead>
+                        <tr><th>Foto</th><th>Descrição</th><th>Qtd</th><th>Preço</th><th>Fornecedor</th><th>Ações</th></tr>
+                    </thead>
+                    <tbody id="corpo-prod"></tbody>
+                </table>
+            </div>
         </div>
     </div>
 
@@ -217,7 +244,13 @@
                 <div class="form-group"><label>Quantidade</label><input type="number" id="p-qtd" required></div>
                 <div class="form-group"><label>Valor (R$)</label><input type="number" step="0.01" id="p-valor" required></div>
                 <div class="form-group"><label>Fornecedor</label><input type="text" id="p-forn" required></div>
-                <div class="form-group"><label>Imagem</label><input type="file" id="p-img" accept="image/*"></div>
+                <div class="form-group">
+                    <label>Imagem</label>
+                    <input type="file" id="p-img" accept="image/*">
+                    <div style="margin-top:10px">
+                        <img id="p-preview" alt="Pré-visualização" style="display:none; max-width: 150px; max-height: 150px; border:1px solid #ddd; border-radius:6px; padding:2px; background:#fff" />
+                    </div>
+                </div>
                 <button type="submit" class="btn-novo btn-novo-prod" style="width:100%">Salvar no Estoque</button>
                 <button type="button" onclick="fecharModais()" style="width:100%; background:none; border:none; margin-top:10px; cursor:pointer">Cancelar</button>
             </form>
@@ -232,10 +265,18 @@
 
         // Início automático
         window.onload = () => {
-            if (!localStorage.getItem('usuarioLogado')) {
+            const usrStr = localStorage.getItem('usuarioLogado');
+            if (!usrStr) {
                 window.location.href = 'login.html';
                 return;
             }
+            try {
+                const usr = JSON.parse(usrStr);
+                const nomeEl = document.getElementById('usuario-nome');
+                if (nomeEl && usr?.nome) {
+                    nomeEl.textContent = `Olá, ${usr.nome}`;
+                }
+            } catch {}
             carregarUsuarios();
             carregarClientes();
             carregarFornecedores();
@@ -367,21 +408,29 @@
             fd.append('quantidade', document.getElementById('p-qtd').value);
             fd.append('valor', document.getElementById('p-valor').value);
             fd.append('fornecedor', document.getElementById('p-forn').value);
-            
-            const img = document.getElementById('p-img').files[0];
-            if(img) fd.append('imagem', img);
 
-            const res = await fetch(API_P, {
-                method: 'POST',
+            const img = document.getElementById('p-img').files[0];
+            if (img) fd.append('imagem', img);
+
+            const id = document.getElementById('p-id').value;
+            const url = id ? `${API_P}/${id}` : API_P;
+            const method = id ? 'PUT' : 'POST';
+
+            const res = await fetch(url, {
+                method,
                 body: fd,
                 credentials: 'include'
             });
 
-            if(res.ok) { 
+            if (res.ok) {
                 e.target.reset();
-                fecharModais(); 
-                carregarProdutos(); 
-                avisar("Produto adicionado!");
+                fecharModais();
+                carregarProdutos();
+                avisar(id ? "Produto atualizado!" : "Produto adicionado!");
+            } else {
+                const txt = await res.text();
+                avisar('Erro ao salvar produto');
+                console.error('Erro produto:', txt);
             }
         }
 
@@ -515,6 +564,10 @@
         function abrirModalProduto() { 
             document.getElementById('titulo-prod').textContent = 'Adicionar Produto';
             document.getElementById('p-id').value = '';
+            const prev = document.getElementById('p-preview');
+            if (prev) { prev.src = ''; prev.style.display = 'none'; }
+            const file = document.getElementById('p-img');
+            if (file) { file.value = ''; }
             document.getElementById('modal-prod').classList.add('ativo'); 
         }
         
@@ -579,8 +632,35 @@
         }
         
         async function editarProduto(id) {
-            avisar('Edição de produtos em desenvolvimento');
-            // TODO: Implementar edição de produtos (mais complexo devido ao upload de imagem)
+            try {
+                const res = await fetch(`${API_P}/${id}`, { credentials: 'include' });
+                if (!res.ok) { avisar('Erro ao carregar produto'); return; }
+                const p = await res.json();
+
+                document.getElementById('titulo-prod').textContent = 'Editar Produto';
+                document.getElementById('p-id').value = p.id;
+                document.getElementById('p-desc').value = p.descricao || '';
+                document.getElementById('p-qtd').value = p.quantidade ?? 0;
+                document.getElementById('p-valor').value = p.valor ?? 0;
+                document.getElementById('p-forn').value = p.fornecedor || '';
+                document.getElementById('p-img').value = '';
+
+                const prev = document.getElementById('p-preview');
+                if (prev) {
+                    if (p.caminhoImagem) {
+                        prev.src = `/${p.caminhoImagem}`;
+                        prev.style.display = 'block';
+                    } else {
+                        prev.src = '';
+                        prev.style.display = 'none';
+                    }
+                }
+
+                document.getElementById('modal-prod').classList.add('ativo');
+            } catch (err) {
+                avisar('Erro ao carregar produto');
+                console.error(err);
+            }
         }
         
         function fecharModais() { 
@@ -593,6 +673,9 @@
             document.getElementById('titulo-prod').textContent = 'Adicionar Produto';
             // Restaurar required na senha
             document.getElementById('u-senha').setAttribute('required', 'required');
+            // Limpar preview de produto
+            const prev = document.getElementById('p-preview');
+            if (prev) { prev.src = ''; prev.style.display = 'none'; }
         }
         function avisar(txt) {
             const m = document.getElementById('msg-geral');
@@ -604,6 +687,23 @@
             window.location.href = 'login.html';
         }
         function fazerLogout() { if(confirm("Deseja sair?")) logoutForcado(); }
+
+        // Preview ao escolher nova imagem
+        (function(){
+            const file = document.getElementById('p-img');
+            const prev = document.getElementById('p-preview');
+            if (!file || !prev) return;
+            file.addEventListener('change', () => {
+                const f = file.files && file.files[0];
+                if (!f) return;
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    prev.src = e.target.result;
+                    prev.style.display = 'block';
+                };
+                reader.readAsDataURL(f);
+            });
+        })();
     </script>
 </body>
 </html>

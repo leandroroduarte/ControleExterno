@@ -1,6 +1,89 @@
-@CadastroUsuarios_HostAddress = http://localhost:5132
+@http = http://localhost:5132
+@https = https://localhost:7008
+@base = {{https}}
 
-GET {{CadastroUsuarios_HostAddress}}/weatherforecast/
+### Login (cria sessão)
+POST {{base}}/api/usuarios/login
+Content-Type: application/json
+
+{
+	"email": "demo@email.com",
+	"senha": "demo123456"
+}
+
+### Listar usuários (público)
+GET {{base}}/api/usuarios
 Accept: application/json
 
-###
+### Criar cliente (requer sessão de login acima)
+POST {{base}}/api/clientes
+Content-Type: application/json
+
+{
+	"Nome": "Cliente Teste",
+	"CPF_CNPJ": "12345678901",
+	"Email": "cliente.teste@example.com",
+	"Telefone": "(11) 99999-9999",
+	"Endereco": "Rua Teste, 123"
+}
+
+### Listar clientes (requer sessão)
+GET {{base}}/api/clientes
+Accept: application/json
+
+### Buscar cliente por ID (ajuste o ID conforme retorno de criação)
+@clienteId = 1
+GET {{base}}/api/clientes/{{clienteId}}
+Accept: application/json
+
+### Atualizar cliente (ajuste o ID e dados)
+PUT {{base}}/api/clientes/{{clienteId}}
+Content-Type: application/json
+
+{
+	"Id": {{clienteId}},
+	"Nome": "Cliente Teste Atualizado",
+	"CPF_CNPJ": "12345678901",
+	"Email": "cliente.teste@example.com",
+	"Telefone": "(11) 98888-7777",
+	"Endereco": "Rua Teste, 456"
+}
+
+### Excluir cliente (ajuste o ID)
+DELETE {{base}}/api/clientes/{{clienteId}}
+Accept: application/json
+
+### Fornecedores - exemplo de criação (requer sessão)
+POST {{base}}/api/fornecedores
+Content-Type: application/json
+
+{
+	"NomeFantasia": "Fornecedor XPTO",
+	"CNPJ": "11222333000144",
+	"EmailVendas": "contato@xpto.com",
+	"Telefone": "(11) 4002-8922",
+	"Categoria": "Geral"
+}
+
+### Produtos - criação sem imagem (form-data) (requer sessão)
+POST {{base}}/api/produtos
+Content-Type: multipart/form-data; boundary=WebKitFormBoundary7MA4YWxkTrZu0gW
+
+--WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="descricao"
+
+Produto de Teste
+--WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="quantidade"
+
+5
+--WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="valor"
+
+123.45
+--WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="fornecedor"
+
+Fornecedor XPTO
+--WebKitFormBoundary7MA4YWxkTrZu0gW--
+

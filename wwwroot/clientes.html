@@ -14,9 +14,15 @@
         <span class="navbar-toggler-icon"></span>
       </button>
       <div class="collapse navbar-collapse" id="navbarNav">
-        <ul class="navbar-nav ms-auto">
+        <ul class="navbar-nav ms-auto align-items-center">
           <li class="nav-item"><a class="nav-link" href="clientes.html">Clientes</a></li>
           <li class="nav-item"><a class="nav-link" href="fornecedores.html">Fornecedores</a></li>
+          <li class="nav-item">
+            <span class="navbar-text me-2" id="usuario-nome"></span>
+          </li>
+          <li class="nav-item">
+            <button class="btn btn-sm btn-outline-light" onclick="fazerLogout()">Sair</button>
+          </li>
         </ul>
       </div>
     </div>
@@ -97,6 +103,16 @@
     function checkLogin() {
       const usuario = localStorage.getItem('usuarioLogado');
       if (!usuario) { window.location.href = 'login.html'; }
+      try {
+        const usr = JSON.parse(usuario);
+        const el = document.getElementById('usuario-nome');
+        if (el && usr?.nome) el.textContent = `Olá, ${usr.nome}`;
+      } catch {}
+    }
+
+    function fazerLogout() {
+      localStorage.removeItem('usuarioLogado');
+      window.location.href = 'login.html';
     }
 
     function showMessage(texto, tipo) {
