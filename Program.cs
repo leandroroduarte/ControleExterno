@@ -37,11 +37,35 @@ builder.Services.AddCors(options =>
     });
 });
 
-// Configurar Database Context - Forçar uso de SQLite (ignorar DATABASE_URL)
+// Configurar Database Context - PostgreSQL (Heroku) ou SQLite (Local)
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
-    var dbPath = Path.Combine(Directory.GetCurrentDirectory(), "cadastro.db");
-    options.UseSqlite($"Data Source={dbPath}");
+    var databaseUrl = Environment.GetEnvironmentVariable("SUPABASE_URL") ?? Environment.GetEnvironmentVariable("DATABASE_URL");
+    
+    if (!string.IsNullOrEmpty(databaseUrl))
+    {
+        // Usar PostgreSQL no Heroku
+        // DATABASE_URL vem no formato: postgresql://user:password@host:port/dbname
+        var uri = new Uri(databaseUrl);
+        var userInfo = uri.UserInfo.Split(':');
+        var username = userInfo[0];
+        var password = userInfo[1];
+        var host = uri.Host;
+        var port = uri.Port == -1 ? 5432 : uri.Port;
+        var database = uri.LocalPath.TrimStart('/');
+        
+        var connectionString = $"Host={host};Port={port};Username={username};Password={password};Database={database};SSL Mode=Require;";
+        
+        options.UseNpgsql(connectionString);
+        Console.WriteLine("✅ Usando PostgreSQL (Heroku)");
+    }
+    else
+    {
+        // Usar SQLite localmente
+        var dbPath = Path.Combine(Directory.GetCurrentDirectory(), "cadastro.db");
+        options.UseSqlite($"Data Source={dbPath}");
+        Console.WriteLine("✅ Usando SQLite (Local)");
+    }
 });
 
 // Configurar Swagger/OpenAPI
