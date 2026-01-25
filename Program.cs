@@ -6,14 +6,14 @@ using Microsoft.AspNetCore.Http;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Adicionar Controllers com JSON em camelCase
+// 1. Configurar JSON em camelCase
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
     {
         options.JsonSerializerOptions.PropertyNamingPolicy = System.Text.Json.JsonNamingPolicy.CamelCase;
     });
 
-// Cache e Session para autenticação simples
+// 2. Configurar Cache e Session
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
@@ -24,65 +24,50 @@ builder.Services.AddSession(options =>
     options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
 });
 
-// Adicionar CORS para aceitar requisições do frontend
+// 3. Configurar CORS
 builder.Services.AddCors(options =>
 {
-    options.AddDefaultPolicy(builder =>
+    options.AddDefaultPolicy(policy =>
     {
-        builder
-            .WithOrigins("http://localhost:5132")
-            .AllowAnyMethod()
-            .AllowAnyHeader()
-            .AllowCredentials();
+        policy.AllowAnyOrigin() // Simplificado para evitar bloqueios em deploy
+              .AllowAnyMethod()
+              .AllowAnyHeader();
     });
 });
 
-// Configurar Database Context - PostgreSQL (Heroku) ou SQLite (Local)
+// 4. Configurar Database Context (Supabase ou SQLite)
 builder.Services.AddDbContext<AppDbContext>(options =>
 {
-    var databaseUrl = Environment.GetEnvironmentVariable("SUPABASE_URL") ?? Environment.GetEnvironmentVariable("DATABASE_URL");
+    var connectionString = Environment.GetEnvironmentVariable("SUPABASE_URL");
     
-    if (!string.IsNullOrEmpty(databaseUrl))
+    if (!string.IsNullOrEmpty(connectionString))
     {
-        // Usar PostgreSQL no Heroku
-        // DATABASE_URL vem no formato: postgresql://user:password@host:port/dbname
-        var uri = new Uri(databaseUrl);
-        var userInfo = uri.UserInfo.Split(':');
-        var username = userInfo[0];
-        var password = userInfo[1];
-        var host = uri.Host;
-        var port = uri.Port == -1 ? 5432 : uri.Port;
-        var database = uri.LocalPath.TrimStart('/');
-        
-        var connectionString = $"Host={host};Port={port};Username={username};Password={password};Database={database};SSL Mode=Require;";
-        
+        // Usa a string de conexão direta do Heroku/Supabase
         options.UseNpgsql(connectionString);
-        Console.WriteLine("✅ Usando PostgreSQL (Heroku)");
+        Console.WriteLine("✅ Conectando ao PostgreSQL (Supabase)");
     }
     else
     {
-        // Usar SQLite localmente
+        // Se local, usa SQLite
         var dbPath = Path.Combine(Directory.GetCurrentDirectory(), "cadastro.db");
         options.UseSqlite($"Data Source={dbPath}");
         Console.WriteLine("✅ Usando SQLite (Local)");
     }
 });
 
-// Configurar Swagger/OpenAPI
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 var app = builder.Build();
 
+// 5. Inicialização do Banco e Usuário Demo
 try
 {
-    // Criar/Atualizar database automaticamente
     using (var scope = app.Services.CreateScope())
     {
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         db.Database.EnsureCreated();
         
-        // Adicionar usuário de demo se não existir
         if (!db.Usuarios.Any(u => u.Email == "demo@email.com"))
         {
             db.Usuarios.Add(new Usuario
@@ -93,34 +78,23 @@ try
                 DataCadastro = DateTime.UtcNow
             });
             db.SaveChanges();
-            Console.WriteLine("✅ Usuário de demo criado: demo@email.com / demo123456");
+            Console.WriteLine("✅ Usuário de demo criado: demo@email.com");
         }
     }
 }
 catch (Exception ex)
 {
-    Console.WriteLine($"Erro ao criar banco de dados: {ex.Message}");
-    Console.WriteLine($"Stack trace: {ex.StackTrace}");
+    Console.WriteLine($"⚠️ Erro na inicialização: {ex.Message}");
 }
 
-// Configurar pipeline HTTP
+// 6. Pipeline HTTP
 app.UseSwagger();
 app.UseSwaggerUI();
-
-app.UseDefaultFiles(); // Servir index.html como padrão
-app.UseStaticFiles(); // Servir arquivos estáticos (wwwroot)
-app.UseCors(); // CORS deve vir ANTES de Session
-app.UseSession(); // Habilitar Session antes da autorização
-// app.UseHttpsRedirection(); // Desabilitado para desenvolvimento
+app.UseStaticFiles();
+app.UseDefaultFiles();
+app.UseCors();
+app.UseSession();
 app.UseAuthorization();
 app.MapControllers();
 
-try
-{
-    app.Run();
-}
-catch (Exception ex)
-{
-    Console.WriteLine($"Erro ao iniciar aplicação: {ex.Message}");
-    Console.WriteLine($"Stack trace: {ex.StackTrace}");
-}// Fim do arquivo
+app.Run();
