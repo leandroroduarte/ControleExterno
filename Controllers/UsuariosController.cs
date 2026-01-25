@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using CadastroUsuarios.Data;
 using CadastroUsuarios.Models;
 using Microsoft.AspNetCore.Http;
+using BCrypt.Net;
 
 namespace CadastroUsuarios.Controllers;
 
@@ -37,7 +38,7 @@ public class UsuariosController : ControllerBase
         var usuario = await _context.Usuarios
             .FirstOrDefaultAsync(u => u.Email == request.Email);
 
-        if (usuario == null || usuario.Senha != request.Senha)
+        if (usuario == null || !BCrypt.Verify(request.Senha, usuario.Senha))
         {
             return Unauthorized(new { mensagem = "Email ou senha incorretos" });
         }
@@ -121,8 +122,8 @@ public class UsuariosController : ControllerBase
             return BadRequest(new { mensagem = "Email já cadastrado" });
         }
 
-        // Em produção, você deve fazer hash da senha
-        // Por exemplo: usuario.Senha = BCrypt.Net.BCrypt.HashPassword(usuario.Senha);
+        // Aplicar criptografia BCrypt na senha
+        usuario.Senha = BCrypt.HashPassword(usuario.Senha);
         
         usuario.DataCadastro = DateTime.UtcNow;
         _context.Usuarios.Add(usuario);

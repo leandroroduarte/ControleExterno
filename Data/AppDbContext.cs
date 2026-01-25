@@ -18,6 +18,10 @@ public class AppDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
+        // Configurar nome da tabela com aspas para evitar case-sensitive no Postgres
+        modelBuilder.Entity<Usuario>()
+            .ToTable("Usuarios");
+
         // Configurar índice único para email
         modelBuilder.Entity<Usuario>()
             .HasIndex(u => u.Email)

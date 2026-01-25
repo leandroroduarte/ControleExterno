@@ -100,6 +100,29 @@
             transform: translateY(0);
         }
 
+        .btn-criar-usuario {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 15px;
+        }
+
+        .btn-criar-usuario:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(245, 87, 108, 0.3);
+        }
+
+        .btn-criar-usuario:active {
+            transform: translateY(0);
+        }
+
         .mensagem {
             padding: 12px;
             border-radius: 5px;
@@ -167,6 +190,151 @@
         .info-demo strong {
             color: #333;
         }
+
+        /* Modal para Criar Usuário */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            animation: fadeIn 0.3s ease-in;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: white;
+            margin: 10% auto;
+            padding: 30px;
+            border-radius: 10px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            animation: slideDown 0.3s ease-out;
+        }
+
+        @keyframes slideDown {
+            from {
+                transform: translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .modal-header h2 {
+            margin: 0;
+            color: #333;
+            font-size: 20px;
+        }
+
+        .fechar-modal {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: #999;
+            padding: 0;
+            width: 30px;
+            height: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .fechar-modal:hover {
+            color: #333;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            color: #333;
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            font-size: 14px;
+            box-sizing: border-box;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 5px rgba(102, 126, 234, 0.3);
+        }
+
+        .form-group {
+            margin-bottom: 15px;
+        }
+
+        .btn-salvar {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+            color: white;
+            border: none;
+            border-radius: 5px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            margin-top: 10px;
+        }
+
+        .btn-salvar:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 20px rgba(245, 87, 108, 0.3);
+        }
+
+        .btn-salvar:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .msg-modal {
+            padding: 12px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            display: none;
+            font-size: 14px;
+        }
+
+        .msg-modal.erro {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+            display: block;
+        }
+
+        .msg-modal.sucesso {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -206,6 +374,7 @@
             </div>
 
             <button type="submit" class="btn-login">Entrar</button>
+            <button type="button" class="btn-criar-usuario" onclick="abrirModalCriarUsuario()">Criar Usuário</button>
         </form>
 
         <div class="info-demo">
@@ -219,6 +388,64 @@
 
         <div class="rodape">
             <p>© 2026 Sistema de Cadastro de Usuários</p>
+        </div>
+    </div>
+
+    <!-- Modal para Criar Usuário -->
+    <div id="modalCriarUsuario" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Criar Novo Usuário</h2>
+                <button class="fechar-modal" onclick="fecharModalCriarUsuario()">✕</button>
+            </div>
+
+            <div id="mensagemModal" class="msg-modal"></div>
+
+            <form id="formCriarUsuario" onsubmit="criarNovoUsuario(event)">
+                <div class="form-group">
+                    <label for="nomeNovo">Nome Completo:</label>
+                    <input 
+                        type="text" 
+                        id="nomeNovo" 
+                        placeholder="João Silva" 
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="emailNovo">Email:</label>
+                    <input 
+                        type="email" 
+                        id="emailNovo" 
+                        placeholder="joao@email.com" 
+                        required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="senhaNova">Senha:</label>
+                    <input 
+                        type="password" 
+                        id="senhaNova" 
+                        placeholder="Mínimo 6 caracteres" 
+                        required
+                        minlength="6"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="senhaConfirma">Confirmar Senha:</label>
+                    <input 
+                        type="password" 
+                        id="senhaConfirma" 
+                        placeholder="Confirme sua senha" 
+                        required
+                        minlength="6"
+                    >
+                </div>
+
+                <button type="submit" class="btn-salvar">Criar Usuário</button>
+            </form>
         </div>
     </div>
 
@@ -290,6 +517,102 @@
                 document.getElementById('formLogin').dispatchEvent(new Event('submit'));
             }
         });
+
+        // ===== FUNÇÕES PARA CRIAR USUÁRIO =====
+        function abrirModalCriarUsuario() {
+            document.getElementById('modalCriarUsuario').style.display = 'block';
+            document.getElementById('formCriarUsuario').reset();
+            document.getElementById('mensagemModal').className = 'msg-modal';
+        }
+
+        function fecharModalCriarUsuario() {
+            document.getElementById('modalCriarUsuario').style.display = 'none';
+            document.getElementById('formCriarUsuario').reset();
+            document.getElementById('mensagemModal').className = 'msg-modal';
+        }
+
+        // Fechar modal ao clicar fora dele
+        window.onclick = function(event) {
+            const modal = document.getElementById('modalCriarUsuario');
+            if (event.target == modal) {
+                fecharModalCriarUsuario();
+            }
+        }
+
+        async function criarNovoUsuario(event) {
+            event.preventDefault();
+
+            const nome = document.getElementById('nomeNovo').value.trim();
+            const email = document.getElementById('emailNovo').value.trim();
+            const senha = document.getElementById('senhaNova').value;
+            const senhaConfirma = document.getElementById('senhaConfirma').value;
+            const btn = event.target.querySelector('button');
+            const mensagem = document.getElementById('mensagemModal');
+
+            // Validações
+            if (!nome || nome.length < 3) {
+                mensagem.textContent = '❌ Nome deve ter pelo menos 3 caracteres';
+                mensagem.className = 'msg-modal erro';
+                return;
+            }
+
+            if (!email.includes('@')) {
+                mensagem.textContent = '❌ Email inválido';
+                mensagem.className = 'msg-modal erro';
+                return;
+            }
+
+            if (senha.length < 6) {
+                mensagem.textContent = '❌ Senha deve ter no mínimo 6 caracteres';
+                mensagem.className = 'msg-modal erro';
+                return;
+            }
+
+            if (senha !== senhaConfirma) {
+                mensagem.textContent = '❌ As senhas não conferem';
+                mensagem.className = 'msg-modal erro';
+                return;
+            }
+
+            // Desabilitar botão durante envio
+            btn.disabled = true;
+            btn.textContent = 'Criando...';
+
+            try {
+                const response = await fetch('/api/usuarios', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ 
+                        nome: nome,
+                        email: email,
+                        senha: senha
+                    })
+                });
+
+                const dados = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(dados.mensagem || 'Erro ao criar usuário');
+                }
+
+                mensagem.textContent = '✅ ' + dados.mensagem;
+                mensagem.className = 'msg-modal sucesso';
+
+                // Fechar modal após sucesso
+                setTimeout(() => {
+                    fecharModalCriarUsuario();
+                    alert('Usuário criado com sucesso! Agora você pode fazer login.');
+                }, 1500);
+
+            } catch (error) {
+                console.error('Erro:', error);
+                mensagem.textContent = '❌ ' + (error.message || 'Erro ao criar usuário. Tente novamente.');
+                mensagem.className = 'msg-modal erro';
+            } finally {
+                btn.disabled = false;
+                btn.textContent = 'Criar Usuário';
+            }
+        }
     </script>
 </body>
 </html>
