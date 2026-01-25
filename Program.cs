@@ -123,4 +123,4 @@ catch (Exception ex)
 {
     Console.WriteLine($"Erro ao iniciar aplicação: {ex.Message}");
     Console.WriteLine($"Stack trace: {ex.StackTrace}");
-}
+}// Fim do arquivo
