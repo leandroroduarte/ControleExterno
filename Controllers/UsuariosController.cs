@@ -38,7 +38,7 @@ public class UsuariosController : ControllerBase
         var usuario = await _context.Usuarios
             .FirstOrDefaultAsync(u => u.Email == request.Email);
 
-        if (usuario == null || !BCrypt.Verify(request.Senha, usuario.Senha))
+        if (usuario == null || !BCrypt.Net.BCrypt.Verify(request.Senha, usuario.Senha))
         {
             return Unauthorized(new { mensagem = "Email ou senha incorretos" });
         }
@@ -123,7 +123,7 @@ public class UsuariosController : ControllerBase
         }
 
         // Aplicar criptografia BCrypt na senha
-        usuario.Senha = BCrypt.HashPassword(usuario.Senha);
+        usuario.Senha = BCrypt.Net.BCrypt.HashPassword(usuario.Senha);
         
         usuario.DataCadastro = DateTime.UtcNow;
         _context.Usuarios.Add(usuario);
@@ -155,16 +155,45 @@ public class UsuariosController : ControllerBase
             return BadRequest(ModelState);
         }
 
-        // Verificar se email já existe em outro usuário
-        var emailExiste = await _context.Usuarios
-            .AnyAsync(u => u.Email == usuario.Email && u.Id != id);
-
-        if (emailExiste)
+        // Buscar usuário existente para comparar
+        var usuarioExistente = await _context.Usuarios.FindAsync(id);
+        if (usuarioExistente == null)
         {
-            return BadRequest(new { mensagem = "Email já cadastrado por outro usuário" });
+            return NotFound(new { mensagem = "Usuário não encontrado" });
         }
 
-        _context.Entry(usuario).State = EntityState.Modified;
+        // Verificar se email já existe em outro usuário
+        if (usuario.Email != usuarioExistente.Email)
+        {
+            var emailExiste = await _context.Usuarios
+                .AnyAsync(u => u.Email == usuario.Email && u.Id != id);
+
+            if (emailExiste)
+            {
+                return BadRequest(new { mensagem = "Email já cadastrado por outro usuário" });
+            }
+        }
+
+        // Se a senha foi alterada, aplicar BCrypt
+        if (!string.IsNullOrWhiteSpace(usuario.Senha) && usuario.Senha != usuarioExistente.Senha)
+        {
+            if (usuario.Senha.Length < 6)
+            {
+                return BadRequest(new { mensagem = "A senha deve ter no mínimo 6 caracteres" });
+            }
+            usuario.Senha = BCrypt.Net.BCrypt.HashPassword(usuario.Senha);
+        }
+        else
+        {
+            // Manter senha existente se não foi alterada
+            usuario.Senha = usuarioExistente.Senha;
+        }
+
+        usuarioExistente.Nome = usuario.Nome;
+        usuarioExistente.Email = usuario.Email;
+        usuarioExistente.Senha = usuario.Senha;
+
+        _context.Entry(usuarioExistente).State = EntityState.Modified;
 
         try
         {
@@ -172,11 +201,7 @@ public class UsuariosController : ControllerBase
         }
         catch (DbUpdateConcurrencyException)
         {
-            if (!await UsuarioExists(id))
-            {
-                return NotFound(new { mensagem = "Usuário não encontrado" });
-            }
-            throw;
+            return NotFound(new { mensagem = "Erro ao atualizar usuário" });
         }
 
         return Ok(new { mensagem = "Usuário atualizado com sucesso!" });

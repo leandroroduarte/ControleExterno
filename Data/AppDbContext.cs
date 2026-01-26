@@ -18,20 +18,33 @@ public class AppDbContext : DbContext
     {
         base.OnModelCreating(modelBuilder);
 
-        // Configurar nome da tabela com aspas para evitar case-sensitive no Postgres
-        modelBuilder.Entity<Usuario>()
-            .ToTable("Usuarios");
+        // Configurar nomes de colunas e tabelas para PostgreSQL (case-insensitive)
+        modelBuilder.Entity<Usuario>(entity =>
+        {
+            entity.ToTable("usuarios");
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Nome).HasColumnName("nome");
+            entity.Property(e => e.Email).HasColumnName("email");
+            entity.Property(e => e.Senha).HasColumnName("senha");
+            entity.Property(e => e.DataCadastro).HasColumnName("datacadastro");
+            entity.HasIndex(u => u.Email).IsUnique();
+        });
 
-        // Configurar índice único para email
-        modelBuilder.Entity<Usuario>()
-            .HasIndex(u => u.Email)
-            .IsUnique();
+        modelBuilder.Entity<Produto>(entity =>
+        {
+            entity.ToTable("produtos");
+        });
 
-        // Índices úteis
-        modelBuilder.Entity<Cliente>()
-            .HasIndex(c => new { c.UsuarioId, c.Nome });
+        modelBuilder.Entity<Cliente>(entity =>
+        {
+            entity.ToTable("clientes");
+            entity.HasIndex(c => new { c.UsuarioId, c.Nome });
+        });
 
-        modelBuilder.Entity<Fornecedor>()
-            .HasIndex(f => new { f.UsuarioId, f.NomeFantasia });
+        modelBuilder.Entity<Fornecedor>(entity =>
+        {
+            entity.ToTable("fornecedores");
+            entity.HasIndex(f => new { f.UsuarioId, f.NomeFantasia });
+        });
     }
 }
