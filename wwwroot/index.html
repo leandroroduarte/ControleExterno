@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Sistema de Gestão - Admin</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='75' font-size='75' fill='%234CAF50'>⚙</text></svg>" type="image/svg+xml">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body {
@@ -164,7 +165,7 @@
             <div class="table-wrapper">
                 <table id="tab-forn" style="display:none">
                     <thead>
-                        <tr><th>Nome Fantasia</th><th>CNPJ</th><th>Email Vendas</th><th>Telefone</th><th>Categoria</th><th>Ações</th></tr>
+                        <tr><th>Nome Fantasia</th><th>CNPJ</th><th>Email Vendas</th><th>Telefone</th><th>Endereço</th><th>Ações</th></tr>
                     </thead>
                     <tbody id="corpo-forn"></tbody>
                 </table>
@@ -228,7 +229,7 @@
                 <div class="form-group"><label>CNPJ</label><input type="text" id="f-cnpj" required></div>
                 <div class="form-group"><label>Email de Vendas</label><input type="email" id="f-email" required></div>
                 <div class="form-group"><label>Telefone</label><input type="text" id="f-tel" required></div>
-                <div class="form-group"><label>Categoria</label><input type="text" id="f-cat" placeholder="ex: eletrônicos, limpeza" required></div>
+                <div class="form-group"><label>Endereço</label><input type="text" id="f-endereco" placeholder="ex: Rua X, 123 - Cidade/UF" required></div>
                 <button type="submit" class="btn-novo" style="width:100%">Salvar Fornecedor</button>
                 <button type="button" onclick="fecharModais()" style="width:100%; background:none; border:none; margin-top:10px; cursor:pointer">Cancelar</button>
             </form>
@@ -383,7 +384,7 @@
                 
                 const html = dados.map(p => `
                     <tr>
-                        <td>${p.caminhoImagem ? `<img src="/${p.caminhoImagem}" class="produto-preview">` : '---'}</td>
+                        <td>${p.caminhoImagem ? `<img src="${p.caminhoImagem}" class="produto-preview">` : '---'}</td>
                         <td>${p.descricao}</td>
                         <td>${p.quantidade}</td>
                         <td>R$ ${parseFloat(p.valor).toFixed(2)}</td>
@@ -525,7 +526,7 @@
                         <td>${f.cnpj ?? ''}</td>
                         <td>${f.emailVendas}</td>
                         <td>${f.telefone}</td>
-                        <td>${f.categoria}</td>
+                        <td>${f.endereco}</td>
                         <td>
                           <button class="btn" onclick="editarFornecedor(${f.id})" style="background:#4CAF50; margin-right:5px">Editar</button>
                           <button class="btn btn-deletar" onclick="deletarFornecedor(${f.id})">Excluir</button>
@@ -548,7 +549,7 @@
                 cnpj: document.getElementById('f-cnpj').value.trim(),
                 emailVendas: document.getElementById('f-email').value.trim(),
                 telefone: document.getElementById('f-tel').value.trim(),
-                categoria: document.getElementById('f-cat').value.trim()
+                endereco: document.getElementById('f-endereco').value.trim()
             };
             if (id) payload.id = parseInt(id);
             
@@ -639,7 +640,7 @@
                 document.getElementById('f-cnpj').value = fornecedor.cnpj || '';
                 document.getElementById('f-email').value = fornecedor.emailVendas;
                 document.getElementById('f-tel').value = fornecedor.telefone;
-                document.getElementById('f-cat').value = fornecedor.categoria;
+                document.getElementById('f-endereco').value = fornecedor.endereco;
                 document.getElementById('modal-forn').classList.add('ativo');
             } catch (err) {
                 avisar('Erro ao carregar fornecedor');
@@ -664,7 +665,7 @@
                 const prev = document.getElementById('p-preview');
                 if (prev) {
                     if (p.caminhoImagem) {
-                        prev.src = `/${p.caminhoImagem}`;
+                        prev.src = p.caminhoImagem;
                         prev.style.display = 'block';
                     } else {
                         prev.src = '';

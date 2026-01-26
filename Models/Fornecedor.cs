@@ -25,8 +25,8 @@ public class Fornecedor
     public string Telefone { get; set; } = string.Empty;
 
     [Required]
-    [MaxLength(100)]
-    public string Categoria { get; set; } = string.Empty;
+    [MaxLength(500)]
+    public string Endereco { get; set; } = string.Empty;
 
     [Required]
     public int UsuarioId { get; set; }

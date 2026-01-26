@@ -35,7 +35,7 @@ public class FornecedoresController : ControllerBase
                 f.CNPJ,
                 f.EmailVendas,
                 f.Telefone,
-                f.Categoria,
+                f.Endereco,
                 f.DataCadastro
             }).ToListAsync();
 
@@ -56,7 +56,7 @@ public class FornecedoresController : ControllerBase
                 f.CNPJ,
                 f.EmailVendas,
                 f.Telefone,
-                f.Categoria,
+                f.Endereco,
                 f.DataCadastro
             })
             .FirstOrDefaultAsync();
@@ -84,7 +84,7 @@ public class FornecedoresController : ControllerBase
             fornecedor.CNPJ,
             fornecedor.EmailVendas,
             fornecedor.Telefone,
-            fornecedor.Categoria,
+            fornecedor.Endereco,
             fornecedor.DataCadastro
         });
     }
@@ -104,7 +104,7 @@ public class FornecedoresController : ControllerBase
         existente.CNPJ = fornecedor.CNPJ;
         existente.EmailVendas = fornecedor.EmailVendas;
         existente.Telefone = fornecedor.Telefone;
-        existente.Categoria = fornecedor.Categoria;
+        existente.Endereco = fornecedor.Endereco;
 
         await _context.SaveChangesAsync();
         return Ok(new { mensagem = "Fornecedor atualizado com sucesso!" });

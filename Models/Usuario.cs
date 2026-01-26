@@ -24,4 +24,13 @@ public class Usuario
 
     // Navegação: produtos pertencentes ao usuário
     public ICollection<Produto> Produtos { get; set; } = new List<Produto>();
+
+    public void NormalizarDataCadastro()
+    {
+        // Garantir que a data sempre seja UTC
+        if (DataCadastro.Kind == DateTimeKind.Unspecified)
+        {
+            DataCadastro = DateTime.SpecifyKind(DataCadastro, DateTimeKind.Utc);
+        }
+    }
 }

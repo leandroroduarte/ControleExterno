@@ -1,6 +1,8 @@
 using Microsoft.EntityFrameworkCore;
 using CadastroUsuarios.Data;
 using CadastroUsuarios.Models;
+using CadastroUsuarios.Services;
+using CadastroUsuarios.Middleware;
 using System.IO;
 using Microsoft.AspNetCore.Http;
 
@@ -55,21 +57,33 @@ builder.Services.AddDbContext<AppDbContext>(options =>
     }
 });
 
+// 5. Registrar HttpClient e Supabase Storage Service
+Console.WriteLine("🔧 Registrando SupabaseStorageService...");
+builder.Services.AddHttpClient<SupabaseStorageService>();
+builder.Services.AddScoped<SupabaseStorageService>();
+Console.WriteLine("✅ SupabaseStorageService registrado");
+
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+Console.WriteLine("🔧 Construindo aplicação...");
 var app = builder.Build();
+Console.WriteLine("✅ Aplicação construída com sucesso");
 
 // 5. Inicialização do Banco e Usuário Demo
+Console.WriteLine("🔧 Inicializando banco de dados e usuário demo...");
 try
 {
     using (var scope = app.Services.CreateScope())
     {
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+        Console.WriteLine("📦 Garantindo criação do banco...");
         db.Database.EnsureCreated();
+        Console.WriteLine("✅ Banco criado/verificado");
         
         if (!db.Usuarios.Any(u => u.Email == "demo@email.com"))
         {
+            Console.WriteLine("👤 Criando usuário demo...");
             db.Usuarios.Add(new Usuario
             {
                 Nome = "Usuário Demo",
@@ -80,21 +94,60 @@ try
             db.SaveChanges();
             Console.WriteLine("✅ Usuário de demo criado: demo@email.com");
         }
+        else
+        {
+            Console.WriteLine("✅ Usuário demo já existe");
+        }
     }
 }
 catch (Exception ex)
 {
-    Console.WriteLine($"⚠️ Erro na inicialização: {ex.Message}");
+    Console.WriteLine($"❌ ERRO na inicialização: {ex.Message}");
+    Console.WriteLine($"📋 Stack trace: {ex.StackTrace}");
+    throw;
 }
 
 // 6. Pipeline HTTP
+Console.WriteLine("🔧 Configurando pipeline HTTP...");
 app.UseSwagger();
 app.UseSwaggerUI();
 app.UseStaticFiles();
 app.UseDefaultFiles();
 app.UseCors();
+app.UseMiddleware<ErrorHandlingMiddleware>();
 app.UseSession();
 app.UseAuthorization();
 app.MapControllers();
 
-app.Run();
+Console.WriteLine("✅ Pipeline configurado");
+Console.WriteLine("🚀 Iniciando aplicação...");
+
+AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
+{
+    Console.WriteLine($"❌ Exceção não tratada: {e.ExceptionObject}");
+    Environment.Exit(1);
+};
+
+TaskScheduler.UnobservedTaskException += (sender, e) =>
+{
+    Console.WriteLine($"❌ Task exceção não observada: {e.Exception}");
+    e.SetObserved();
+};
+
+try
+{
+    Console.WriteLine("📥 Iniciando app.Run()...");
+    app.Run();
+    Console.WriteLine("✅ app.Run() completou normalmente");
+}
+catch (OperationCanceledException)
+{
+    Console.WriteLine("⚠️ Operação cancelada");
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"❌ Erro fatal no app.Run(): {ex.GetType().Name}");
+    Console.WriteLine($"   Mensagem: {ex.Message}");
+    Console.WriteLine($"   Stack trace:\n{ex.StackTrace}");
+    throw;
+}

@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using CadastroUsuarios.Data;
 using CadastroUsuarios.Models;
+using CadastroUsuarios.Services;
 using System.IO;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Http;
@@ -14,13 +15,13 @@ public class ProdutosController : ControllerBase
 {
     private readonly AppDbContext _context;
     private readonly ILogger<ProdutosController> _logger;
-    private readonly IWebHostEnvironment _env;
+    private readonly SupabaseStorageService _storageService;
 
-    public ProdutosController(AppDbContext context, ILogger<ProdutosController> logger, IWebHostEnvironment env)
+    public ProdutosController(AppDbContext context, ILogger<ProdutosController> logger, SupabaseStorageService storageService)
     {
         _context = context;
         _logger = logger;
-        _env = env;
+        _storageService = storageService;
     }
 
     // GET: api/produtos
@@ -103,36 +104,18 @@ public class ProdutosController : ControllerBase
             UsuarioId = usuarioId.Value
         };
 
-        // Processar upload de imagem
+        // Processar upload de imagem para Supabase Storage
         if (imagem != null && imagem.Length > 0)
         {
-            try
+            var imageUrl = await _storageService.UploadImageAsync(imagem);
+            if (imageUrl != null)
             {
-                var uploadsDir = Path.Combine(_env.WebRootPath, "uploads");
-                
-                // Criar pasta se não existir (funciona em Windows e Linux)
-                if (!Directory.Exists(uploadsDir))
-                {
-                    Directory.CreateDirectory(uploadsDir);
-                }
-
-                // Gerar nome único para arquivo
-                var nomeArquivo = $"produto_{DateTime.Now:yyyyMMddHHmmss}_{Guid.NewGuid().ToString().Substring(0, 8)}{Path.GetExtension(imagem.FileName)}";
-                var caminhoCompleto = Path.Combine(uploadsDir, nomeArquivo);
-
-                using (var stream = new FileStream(caminhoCompleto, FileMode.Create))
-                {
-                    await imagem.CopyToAsync(stream);
-                }
-
-                // Armazenar caminho relativo (uploads/produto_...)
-                produto.CaminhoImagem = $"uploads/{nomeArquivo}";
-                _logger.LogInformation($"Imagem salva em: {caminhoCompleto}");
+                produto.CaminhoImagem = imageUrl;
+                _logger.LogInformation($"Imagem enviada para Supabase: {imageUrl}");
             }
-            catch (Exception ex)
+            else
             {
-                _logger.LogError($"Erro ao salvar imagem: {ex.Message}");
-                return BadRequest(new { mensagem = "Erro ao salvar imagem" });
+                _logger.LogWarning("Falha ao fazer upload da imagem no Supabase");
             }
         }
 
@@ -168,39 +151,18 @@ public class ProdutosController : ControllerBase
         // Processar nova imagem se fornecida
         if (imagem != null && imagem.Length > 0)
         {
-            try
+            // Deletar imagem antiga do Supabase se existir
+            if (!string.IsNullOrEmpty(existente.CaminhoImagem) && existente.CaminhoImagem.Contains("supabase"))
             {
-                // Deletar imagem antiga se existir
-                if (!string.IsNullOrEmpty(existente.CaminhoImagem))
-                {
-                    var caminhoAntigo = Path.Combine(_env.WebRootPath, existente.CaminhoImagem);
-                    if (System.IO.File.Exists(caminhoAntigo))
-                    {
-                        System.IO.File.Delete(caminhoAntigo);
-                    }
-                }
-
-                var uploadsDir = Path.Combine(_env.WebRootPath, "uploads");
-                if (!Directory.Exists(uploadsDir))
-                {
-                    Directory.CreateDirectory(uploadsDir);
-                }
-
-                var nomeArquivo = $"produto_{DateTime.Now:yyyyMMddHHmmss}_{Guid.NewGuid().ToString().Substring(0, 8)}{Path.GetExtension(imagem.FileName)}";
-                var caminhoCompleto = Path.Combine(uploadsDir, nomeArquivo);
-
-                using (var stream = new FileStream(caminhoCompleto, FileMode.Create))
-                {
-                    await imagem.CopyToAsync(stream);
-                }
-
-                existente.CaminhoImagem = $"uploads/{nomeArquivo}";
-                _logger.LogInformation($"Imagem atualizada para: {caminhoCompleto}");
+                await _storageService.DeleteImageAsync(existente.CaminhoImagem);
             }
-            catch (Exception ex)
+
+            // Upload nova imagem
+            var imageUrl = await _storageService.UploadImageAsync(imagem);
+            if (imageUrl != null)
             {
-                _logger.LogError($"Erro ao salvar imagem: {ex.Message}");
-                return BadRequest(new { mensagem = "Erro ao salvar imagem" });
+                existente.CaminhoImagem = imageUrl;
+                _logger.LogInformation($"Imagem atualizada no Supabase: {imageUrl}");
             }
         }
 
@@ -225,22 +187,11 @@ public class ProdutosController : ControllerBase
             return NotFound(new { mensagem = "Produto não encontrado" });
         }
 
-        // Deletar arquivo de imagem
-        if (!string.IsNullOrEmpty(produto.CaminhoImagem))
+        // Deletar imagem do Supabase se existir
+        if (!string.IsNullOrEmpty(produto.CaminhoImagem) && produto.CaminhoImagem.Contains("supabase"))
         {
-            try
-            {
-                var caminhoCompleto = Path.Combine(_env.WebRootPath, produto.CaminhoImagem);
-                if (System.IO.File.Exists(caminhoCompleto))
-                {
-                    System.IO.File.Delete(caminhoCompleto);
-                    _logger.LogInformation($"Imagem deletada: {caminhoCompleto}");
-                }
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError($"Erro ao deletar imagem: {ex.Message}");
-            }
+            await _storageService.DeleteImageAsync(produto.CaminhoImagem);
+            _logger.LogInformation($"Imagem deletada do Supabase: {produto.CaminhoImagem}");
         }
 
         _context.Produtos.Remove(produto);

@@ -126,6 +126,7 @@ public class UsuariosController : ControllerBase
         usuario.Senha = BCrypt.Net.BCrypt.HashPassword(usuario.Senha);
         
         usuario.DataCadastro = DateTime.UtcNow;
+        usuario.NormalizarDataCadastro();
         _context.Usuarios.Add(usuario);
         await _context.SaveChangesAsync();
 
@@ -192,6 +193,7 @@ public class UsuariosController : ControllerBase
         usuarioExistente.Nome = usuario.Nome;
         usuarioExistente.Email = usuario.Email;
         usuarioExistente.Senha = usuario.Senha;
+        usuarioExistente.NormalizarDataCadastro();
 
         _context.Entry(usuarioExistente).State = EntityState.Modified;
 

@@ -26,24 +26,56 @@ public class AppDbContext : DbContext
             entity.Property(e => e.Nome).HasColumnName("nome");
             entity.Property(e => e.Email).HasColumnName("email");
             entity.Property(e => e.Senha).HasColumnName("senha");
-            entity.Property(e => e.DataCadastro).HasColumnName("datacadastro");
+            entity.Property(e => e.DataCadastro)
+                .HasColumnName("datacadastro")
+                .HasColumnType("timestamp with time zone");
             entity.HasIndex(u => u.Email).IsUnique();
         });
 
         modelBuilder.Entity<Produto>(entity =>
         {
             entity.ToTable("produtos");
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Descricao).HasColumnName("descricao");
+            entity.Property(e => e.Quantidade).HasColumnName("quantidade");
+            entity.Property(e => e.Valor).HasColumnName("valor");
+            entity.Property(e => e.Fornecedor).HasColumnName("fornecedor");
+            entity.Property(e => e.CaminhoImagem).HasColumnName("caminhoimagem");
+            entity.Property(e => e.UsuarioId).HasColumnName("usuarioid");
+            entity.Property(e => e.DataCadastro)
+                .HasColumnName("datacadastro")
+                .HasColumnType("timestamp with time zone");
         });
 
         modelBuilder.Entity<Cliente>(entity =>
         {
             entity.ToTable("clientes");
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.Nome).HasColumnName("nome");
+            entity.Property(e => e.CPF_CNPJ).HasColumnName("cpf_cnpj");
+            entity.Property(e => e.Email).HasColumnName("email");
+            entity.Property(e => e.Telefone).HasColumnName("telefone");
+            entity.Property(e => e.Endereco).HasColumnName("endereco");
+            entity.Property(e => e.UsuarioId).HasColumnName("usuarioid");
+            entity.Property(e => e.DataCadastro)
+                .HasColumnName("datacadastro")
+                .HasColumnType("timestamp with time zone");
             entity.HasIndex(c => new { c.UsuarioId, c.Nome });
         });
 
         modelBuilder.Entity<Fornecedor>(entity =>
         {
             entity.ToTable("fornecedores");
+            entity.Property(e => e.Id).HasColumnName("id");
+            entity.Property(e => e.NomeFantasia).HasColumnName("nomefantasia");
+            entity.Property(e => e.CNPJ).HasColumnName("cnpj");
+            entity.Property(e => e.EmailVendas).HasColumnName("emailvendas");
+            entity.Property(e => e.Telefone).HasColumnName("telefone");
+            entity.Property(e => e.Endereco).HasColumnName("endereco");
+            entity.Property(e => e.UsuarioId).HasColumnName("usuarioid");
+            entity.Property(e => e.DataCadastro)
+                .HasColumnName("datacadastro")
+                .HasColumnType("timestamp with time zone");
             entity.HasIndex(f => new { f.UsuarioId, f.NomeFantasia });
         });
     }
