@@ -5,6 +5,7 @@ using CadastroUsuarios.Services;
 using CadastroUsuarios.Middleware;
 using System.IO;
 using Microsoft.AspNetCore.Http;
+using BCrypt.Net;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -84,11 +85,12 @@ try
         if (!db.Usuarios.Any(u => u.Email == "demo@email.com"))
         {
             Console.WriteLine("👤 Criando usuário demo...");
+            var senhaHash = BCrypt.Net.BCrypt.HashPassword("demo123456");
             db.Usuarios.Add(new Usuario
             {
                 Nome = "Usuário Demo",
                 Email = "demo@email.com",
-                Senha = "demo123456",
+                Senha = senhaHash,
                 DataCadastro = DateTime.UtcNow
             });
             db.SaveChanges();
