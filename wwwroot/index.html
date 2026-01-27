@@ -737,6 +737,26 @@
                 reader.readAsDataURL(f);
             });
         })();
+
+        // Interceptor global para detectar 401 (sessão expirada)
+        (function() {
+            const originalFetch = window.fetch;
+            window.fetch = function(...args) {
+                return originalFetch.apply(this, args)
+                    .then(response => {
+                        if (response.status === 401) {
+                            console.warn('🔓 Sessão expirada (401). Redirecionando para login...');
+                            localStorage.removeItem('usuarioLogado');
+                            window.location.href = 'login.html';
+                        }
+                        return response;
+                    })
+                    .catch(error => {
+                        console.error('Erro na requisição:', error);
+                        throw error;
+                    });
+            };
+        })();
     </script>
 </body>
 </html>

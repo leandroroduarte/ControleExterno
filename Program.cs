@@ -19,7 +19,7 @@ builder.Services.AddControllers()
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
-    options.IdleTimeout = TimeSpan.FromHours(8);
+    options.IdleTimeout = TimeSpan.FromMinutes(15); // Timeout de 15 minutos
     options.Cookie.HttpOnly = true;
     options.Cookie.IsEssential = true;
     options.Cookie.SameSite = SameSiteMode.Lax;
