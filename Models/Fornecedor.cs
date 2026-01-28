@@ -25,6 +25,11 @@ public class Fornecedor
     public string Telefone { get; set; } = string.Empty;
 
     [Required]
+    [MaxLength(10)]
+    [RegularExpression(@"^\d{5}-?\d{3}$", ErrorMessage = "CEP deve estar no formato XXXXX-XXX ou XXXXXXX")]
+    public string CEP { get; set; } = string.Empty;
+
+    [Required]
     [MaxLength(500)]
     public string Endereco { get; set; } = string.Empty;
 

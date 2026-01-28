@@ -46,7 +46,8 @@
             <th>CNPJ</th>
             <th>Email de Vendas</th>
             <th>Telefone</th>
-            <th>Categoria</th>
+            <th>CEP</th>
+            <th>Endereço</th>
             <th>Ações</th>
           </tr>
         </thead>
@@ -83,9 +84,16 @@
               <input class="form-control" id="fornecedorTelefone" required>
             </div>
             <div class="mb-3">
-              <label class="form-label" for="fornecedorCategoria">Categoria</label>
-              <input class="form-control" id="fornecedorCategoria" placeholder="ex: eletrônicos, limpeza" required>
+              <label class="form-label" for="fornecedorCEP">CEP</label>
+              <div class="input-group">
+                <input class="form-control" id="fornecedorCEP" placeholder="XXXXX-XXX" maxlength="9" required>
+                <button type="button" class="btn btn-outline-secondary" id="btnBuscarCEPForn" title="Buscar CEP">Buscar</button>
+              </div>
+              <small class="text-muted">Digite o CEP e clique em Buscar ou pressione Enter</small>
             </div>
+            <div class="mb-3">
+              <label class="form-label" for="fornecedorEndereco">Endereço</label>
+              <input class="form-control" id="fornecedorEndereco" required>
           </div>
           <div class="modal-footer">
             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -99,6 +107,44 @@
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
   <script>
     const FORNECEDORES_API = '/api/fornecedores';
+    const VIACEP_API = 'https://viacep.com.br/ws';
+
+    async function buscarCEP(cep) {
+      const cepLimpo = cep.replace(/\D/g, '');
+      if (cepLimpo.length !== 8) {
+        showMessage('CEP deve ter 8 dígitos', 'warning');
+        return;
+      }
+      
+      try {
+        const resp = await fetch(`${VIACEP_API}/${cepLimpo}/json/`);
+        const data = await resp.json();
+        
+        if (data.erro) {
+          showMessage('CEP não encontrado', 'warning');
+          return;
+        }
+
+        // Preencher endereço automaticamente
+        const rua = data.logradouro || '';
+        const bairro = data.bairro || '';
+        const cidade = data.localidade || '';
+        const estado = data.uf || '';
+        
+        const enderecoCompleto = `${rua}, ${bairro} - ${cidade}, ${estado}`;
+        document.getElementById('fornecedorEndereco').value = enderecoCompleto;
+        showMessage('CEP encontrado com sucesso!', 'success');
+      } catch (e) {
+        console.error(e);
+        showMessage('Erro ao buscar CEP', 'danger');
+      }
+    }
+
+    function formatarCEP(valor) {
+      const cepLimpo = valor.replace(/\D/g, '');
+      if (cepLimpo.length <= 5) return cepLimpo;
+      return cepLimpo.substring(0, 5) + '-' + cepLimpo.substring(5, 8);
+    }
 
     function checkLogin() {
       const usuario = localStorage.getItem('usuarioLogado');
@@ -149,7 +195,8 @@
           <td>${f.cNPJ || f.cNPJ}</td>
           <td>${f.emailVendas}</td>
           <td>${f.telefone}</td>
-          <td>${f.categoria}</td>
+          <td>${f.cep || '-'}</td>
+          <td>${f.endereco}</td>
           <td>
             <button class="btn btn-sm btn-outline-primary me-2" onclick="abrirModal(${f.id})">Editar</button>
             <button class="btn btn-sm btn-outline-danger" onclick="deletarFornecedor(${f.id}, '${f.nomeFantasia}')">Excluir</button>
@@ -172,7 +219,8 @@
           document.getElementById('fornecedorCnpj').value = f.cNPJ || f.cNPJ;
           document.getElementById('fornecedorEmailVendas').value = f.emailVendas;
           document.getElementById('fornecedorTelefone').value = f.telefone;
-          document.getElementById('fornecedorCategoria').value = f.categoria;
+          document.getElementById('fornecedorCEP').value = f.cep || '';
+          document.getElementById('fornecedorEndereco').value = f.endereco;
         } catch (e) { console.error(e); }
       }
       modal.show();
@@ -187,7 +235,8 @@
         CNPJ: document.getElementById('fornecedorCnpj').value.trim(),
         EmailVendas: document.getElementById('fornecedorEmailVendas').value.trim(),
         Telefone: document.getElementById('fornecedorTelefone').value.trim(),
-        Categoria: document.getElementById('fornecedorCategoria').value.trim()
+        CEP: document.getElementById('fornecedorCEP').value.trim(),
+        Endereco: document.getElementById('fornecedorEndereco').value.trim()
       };
 
       try {
@@ -222,6 +271,22 @@
 
     document.getElementById('btnNovoFornecedor').addEventListener('click', () => abrirModal());
     document.getElementById('formFornecedor').addEventListener('submit', salvarFornecedor);
+    
+    // Event listeners para CEP
+    document.getElementById('fornecedorCEP').addEventListener('keypress', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        buscarCEP(document.getElementById('fornecedorCEP').value);
+      }
+    });
+    
+    document.getElementById('fornecedorCEP').addEventListener('input', (e) => {
+      e.target.value = formatarCEP(e.target.value);
+    });
+    
+    document.getElementById('btnBuscarCEPForn').addEventListener('click', () => {
+      buscarCEP(document.getElementById('fornecedorCEP').value);
+    });
 
     checkLogin();
     carregarFornecedores();

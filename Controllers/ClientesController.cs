@@ -35,6 +35,7 @@ public class ClientesController : ControllerBase
                 c.CPF_CNPJ,
                 c.Email,
                 c.Telefone,
+                c.CEP,
                 c.Endereco,
                 c.DataCadastro
             }).ToListAsync();
@@ -56,6 +57,7 @@ public class ClientesController : ControllerBase
                 c.CPF_CNPJ,
                 c.Email,
                 c.Telefone,
+                c.CEP,
                 c.Endereco,
                 c.DataCadastro
             })
@@ -71,7 +73,12 @@ public class ClientesController : ControllerBase
         var usuarioId = ObterUsuarioId();
         if (usuarioId == null) return Unauthorized(new { mensagem = "Usuário não autenticado" });
 
-        if (!ModelState.IsValid) return BadRequest(ModelState);
+        if (!ModelState.IsValid)
+        {
+            _logger.LogError($"Validação falhou: {string.Join(", ", ModelState.Values.SelectMany(v => v.Errors.Select(e => e.ErrorMessage)))}");
+            return BadRequest(ModelState);
+        }
+        
         cliente.UsuarioId = usuarioId.Value;
         cliente.DataCadastro = DateTime.UtcNow;
 
@@ -84,6 +91,7 @@ public class ClientesController : ControllerBase
             cliente.CPF_CNPJ,
             cliente.Email,
             cliente.Telefone,
+            cliente.CEP,
             cliente.Endereco,
             cliente.DataCadastro
         });
@@ -104,6 +112,7 @@ public class ClientesController : ControllerBase
         existente.CPF_CNPJ = cliente.CPF_CNPJ;
         existente.Email = cliente.Email;
         existente.Telefone = cliente.Telefone;
+        existente.CEP = cliente.CEP;
         existente.Endereco = cliente.Endereco;
 
         await _context.SaveChangesAsync();

@@ -55,6 +55,7 @@ public class AppDbContext : DbContext
             entity.Property(e => e.CPF_CNPJ).HasColumnName("cpf_cnpj");
             entity.Property(e => e.Email).HasColumnName("email");
             entity.Property(e => e.Telefone).HasColumnName("telefone");
+            entity.Property(e => e.CEP).HasColumnName("cep");
             entity.Property(e => e.Endereco).HasColumnName("endereco");
             entity.Property(e => e.UsuarioId).HasColumnName("usuarioid");
             entity.Property(e => e.DataCadastro)
@@ -71,6 +72,7 @@ public class AppDbContext : DbContext
             entity.Property(e => e.CNPJ).HasColumnName("cnpj");
             entity.Property(e => e.EmailVendas).HasColumnName("emailvendas");
             entity.Property(e => e.Telefone).HasColumnName("telefone");
+            entity.Property(e => e.CEP).HasColumnName("cep");
             entity.Property(e => e.Endereco).HasColumnName("endereco");
             entity.Property(e => e.UsuarioId).HasColumnName("usuarioid");
             entity.Property(e => e.DataCadastro)

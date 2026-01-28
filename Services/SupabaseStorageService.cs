@@ -165,27 +165,44 @@ public class SupabaseStorageService
     {
         try
         {
-            var uri = new Uri(imageUrl);
-            var filePath = string.Join(string.Empty, uri.Segments.Skip(3));
+            _logger.LogInformation($"[DELETE] Tentando deletar imagem: {imageUrl}");
+            
+            // Extrai apenas "produtos/arquivo.jpg" da URL completa
+            // URL: https://...supabase.co/storage/v1/object/public/produtos-imagens/produtos/arquivo.jpg
+            // Queremos: produtos/arquivo.jpg
+            var filePath = imageUrl.Split(new[] { $"{_bucketName}/" }, StringSplitOptions.None).LastOrDefault() ?? string.Empty;
+            
+            _logger.LogInformation($"[DELETE] FilePath extraído: {filePath}");
 
             var deleteUrl = $"{_supabaseUrl}/storage/v1/object/{_bucketName}/{filePath}";
+            _logger.LogInformation($"[DELETE] URL completa: {deleteUrl}");
+            _logger.LogInformation($"[DELETE] Usando chave: {_supabaseKey.Substring(0, 20)}...");
 
             var request = new HttpRequestMessage(HttpMethod.Delete, deleteUrl);
             request.Headers.Add("Authorization", $"Bearer {_supabaseKey}");
             request.Headers.Add("apikey", _supabaseKey);
 
             var response = await _httpClient.SendAsync(request);
+            
+            _logger.LogInformation($"[DELETE] Status HTTP: {response.StatusCode}");
+            var responseBody = await response.Content.ReadAsStringAsync();
+            _logger.LogInformation($"[DELETE] Resposta: {responseBody}");
+            
             if (response.IsSuccessStatusCode)
             {
-                _logger.LogInformation($"Imagem Supabase deletada: {filePath}");
+                _logger.LogInformation($"✅ Imagem Supabase deletada: {filePath}");
                 return true;
             }
-
-            return false;
+            else
+            {
+                _logger.LogError($"❌ Falha ao deletar. Status: {response.StatusCode}, Body: {responseBody}");
+                return false;
+            }
         }
         catch (Exception ex)
         {
-            _logger.LogError($"Erro ao deletar imagem do Supabase: {ex.Message}");
+            _logger.LogError($"❌ EXCEPTION ao deletar imagem do Supabase: {ex.Message}");
+            _logger.LogError($"Stack: {ex.StackTrace}");
             return false;
         }
     }

@@ -74,6 +74,7 @@
         table { width: 100%; border-collapse: collapse; margin-top: 20px; background: white; }
         th { padding: 15px; text-align: left; border-bottom: 2px solid #eee; background: #fcfcfc; color: #444; }
         td { padding: 15px; border-bottom: 1px solid #eee; color: #666; }
+        td:last-child { white-space: nowrap; display: flex; gap: 5px; align-items: center; }
         .produto-preview { width: 50px; height: 50px; object-fit: cover; border-radius: 4px; border: 1px solid #ddd; }
         .btn { padding: 6px 12px; border: none; border-radius: 4px; cursor: pointer; color: white; margin-right: 5px; }
         .btn-deletar { background: #ff4d4d; }
@@ -148,7 +149,7 @@
             <div class="table-wrapper">
                 <table id="tab-cli" style="display:none">
                     <thead>
-                        <tr><th>Nome</th><th>CPF/CNPJ</th><th>Email</th><th>Telefone</th><th>Endereço</th><th>Ações</th></tr>
+                        <tr><th>Nome</th><th>CPF/CNPJ</th><th>Email</th><th>Telefone</th><th>CEP</th><th>Endereço</th><th>Ações</th></tr>
                     </thead>
                     <tbody id="corpo-cli"></tbody>
                 </table>
@@ -213,7 +214,15 @@
                 <div class="form-group"><label>CPF/CNPJ</label><input type="text" id="c-doc" required></div>
                 <div class="form-group"><label>Email</label><input type="email" id="c-email" required></div>
                 <div class="form-group"><label>Telefone</label><input type="text" id="c-tel" required></div>
-                <div class="form-group"><label>Endereço</label><input type="text" id="c-ender" required></div>
+                <div class="form-group">
+                    <label>CEP</label>
+                    <div style="display: flex; gap: 5px;">
+                        <input type="text" id="c-cep" placeholder="XXXXX-XXX" maxlength="9" style="flex: 1;">
+                        <button type="button" onclick="buscarCEPCliente()" class="btn-novo" style="padding: 10px 15px; width: auto;">Buscar</button>
+                    </div>
+                    <small style="color: #666; font-size: 12px;">Digite o CEP e clique em Buscar</small>
+                </div>
+                <div class="form-group"><label>Endereço</label><input type="text" id="c-ender"></div>
                 <button type="submit" class="btn-novo" style="width:100%">Salvar Cliente</button>
                 <button type="button" onclick="fecharModais()" style="width:100%; background:none; border:none; margin-top:10px; cursor:pointer">Cancelar</button>
             </form>
@@ -278,6 +287,19 @@
                     nomeEl.textContent = `Olá, ${usr.nome}`;
                 }
             } catch {}
+            
+            // Formatar CEP automaticamente
+            const cepInput = document.getElementById('c-cep');
+            if (cepInput) {
+                cepInput.addEventListener('input', () => formatarCEP(cepInput));
+                cepInput.addEventListener('keypress', (e) => {
+                    if (e.key === 'Enter') {
+                        e.preventDefault();
+                        buscarCEPCliente();
+                    }
+                });
+            }
+            
             carregarUsuarios();
             carregarClientes();
             carregarFornecedores();
@@ -466,9 +488,10 @@
                 const html = dados.map(c => `
                     <tr>
                         <td>${c.nome}</td>
-                        <td>${c.cpf_CNPJ ?? ''}</td>
+                        <td>${c.cpF_CNPJ || ''}</td>
                         <td>${c.email}</td>
                         <td>${c.telefone}</td>
+                        <td>${c.cep || '-'}</td>
                         <td>${c.endereco}</td>
                         <td>
                           <button class="btn" onclick="editarCliente(${c.id})" style="background:#4CAF50; margin-right:5px">Editar</button>
@@ -482,6 +505,45 @@
             } catch (e) { console.error(e); }
         }
 
+        async function buscarCEPCliente() {
+            const cep = document.getElementById('c-cep').value.replace(/\D/g, '');
+            if (cep.length !== 8) {
+                alert('CEP deve ter 8 dígitos');
+                return;
+            }
+            
+            try {
+                const resp = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+                const data = await resp.json();
+                
+                if (data.erro) {
+                    alert('CEP não encontrado');
+                    return;
+                }
+
+                const rua = data.logradouro || '';
+                const bairro = data.bairro || '';
+                const cidade = data.localidade || '';
+                const estado = data.uf || '';
+                
+                const enderecoCompleto = `${rua}, ${bairro} - ${cidade}, ${estado}`;
+                document.getElementById('c-ender').value = enderecoCompleto;
+                avisar('CEP encontrado!');
+            } catch (e) {
+                console.error(e);
+                alert('Erro ao buscar CEP');
+            }
+        }
+
+        function formatarCEP(input) {
+            let valor = input.value.replace(/\D/g, '');
+            if (valor.length <= 5) {
+                input.value = valor;
+            } else {
+                input.value = valor.substring(0, 5) + '-' + valor.substring(5, 8);
+            }
+        }
+
         function abrirModalCliente() { document.getElementById('modal-cli').classList.add('ativo'); }
 
         async function salvarCliente(e) {
@@ -492,6 +554,7 @@
                 cpf_CNPJ: document.getElementById('c-doc').value.trim(),
                 email: document.getElementById('c-email').value.trim(),
                 telefone: document.getElementById('c-tel').value.trim(),
+                cep: document.getElementById('c-cep').value.trim(),
                 endereco: document.getElementById('c-ender').value.trim()
             };
             if (id) payload.id = parseInt(id);
@@ -617,9 +680,10 @@
                 document.getElementById('titulo-cli').textContent = 'Editar Cliente';
                 document.getElementById('c-id').value = cliente.id;
                 document.getElementById('c-nome').value = cliente.nome;
-                document.getElementById('c-doc').value = cliente.cpf_CNPJ || '';
+                document.getElementById('c-doc').value = cliente.cpF_CNPJ || '';
                 document.getElementById('c-email').value = cliente.email;
                 document.getElementById('c-tel').value = cliente.telefone;
+                document.getElementById('c-cep').value = cliente.cep || '';
                 document.getElementById('c-ender').value = cliente.endereco;
                 document.getElementById('modal-cli').classList.add('ativo');
             } catch (err) {

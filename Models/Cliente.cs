@@ -21,12 +21,15 @@ public class Cliente
     public string Email { get; set; } = string.Empty;
 
     [Required]
-    [MaxLength(30)]
+    [MaxLength(20)]
     public string Telefone { get; set; } = string.Empty;
 
-    [Required]
+    [MaxLength(10)]
+    [RegularExpression(@"^\d{5}-?\d{3}$", ErrorMessage = "CEP deve estar no formato XXXXX-XXX ou XXXXXXX")]
+    public string? CEP { get; set; }
+
     [MaxLength(300)]
-    public string Endereco { get; set; } = string.Empty;
+    public string? Endereco { get; set; }
 
     [Required]
     public int UsuarioId { get; set; }
